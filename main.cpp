@@ -47,7 +47,8 @@ int main(int argc, char** argv) {
     SimpleSetup* setup = new SimpleSetup("SpinOff", env, rv);
 
     // Create Scene
-    ISceneNode* mrinode = new MRINode();
+    MRINode* mrinode = new MRINode();
+    setup->GetEngine().ProcessEvent().Attach(*mrinode);
     setup->SetScene(*mrinode);
 
     // Register the handler as a listener on up and down keyboard events.
@@ -57,7 +58,8 @@ int main(int argc, char** argv) {
     setup->GetEngine().ProcessEvent().Attach(*move_h);
     setup->GetEngine().DeinitializeEvent().Attach(*move_h);
 
-    setup->GetCamera()->SetPosition(Vector<3, float>(0, 20, -30));
+    setup->GetCamera()->SetPosition(Vector<3, float>(20, 20, 0));
+    //setup->GetCamera()->SetDirection(Vector<3, float>(-1,-1,0), Vector<3, float>(0,0,1));
     setup->GetCamera()->LookAt(0, 0, 0);
 
     // Start the engine.
