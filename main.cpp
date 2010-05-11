@@ -14,6 +14,7 @@
 #include <Core/Engine.h>
 #include <Display/Viewport.h>
 #include <Renderers/IRenderingView.h>
+#include <Math/Vector.h>
 
 // SimpleSetup
 #include <Utils/SimpleSetup.h>
@@ -29,6 +30,7 @@
 using namespace OpenEngine::Core;
 using namespace OpenEngine::Display;
 using namespace OpenEngine::Logging;
+using namespace OpenEngine::Math;
 using namespace OpenEngine::Renderers;
 using namespace OpenEngine::Renderers::OpenGL;
 using namespace OpenEngine::Utils;
@@ -55,6 +57,8 @@ int main(int argc, char** argv) {
     setup->GetEngine().ProcessEvent().Attach(*move_h);
     setup->GetEngine().DeinitializeEvent().Attach(*move_h);
 
+    setup->GetCamera()->SetPosition(Vector<3, float>(0, 20, -30));
+    setup->GetCamera()->LookAt(0, 0, 0);
 
     // Start the engine.
     setup->GetEngine().Start();
