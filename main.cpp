@@ -39,35 +39,18 @@ using namespace OpenEngine::Utils;
 int main(int argc, char** argv) {
     IEnvironment* env = new SDLEnvironment(1024,768,32);
 
-    //Viewport* vp = new Viewport(env->GetFrame());
-
     IRenderingView* rv = new MRIRenderingView();
 
     // Create simple setup
-    SimpleSetup* setup = new SimpleSetup("SpinOff", vp, env, rv);
+    SimpleSetup* setup = new SimpleSetup("SpinOff", env, rv);
 
     // Create Scene
     ISceneNode* mrinode = new MRINode();
     setup->SetScene(*mrinode);
 
-    // Add cam
-    /*
-    ToolChain* chain = new ToolChain();
-    CameraTool* ct = new CameraTool(false);
-    chain->PushBackTool(ct);    
-
-    MouseSelection* ms = new MouseSelection(env->GetFrame(), setup->GetMouse(), NULL);
-    ms->BindTool(vp, chain);
-    
-    setup->GetKeyboard().KeyEvent().Attach(*ms);
-    setup->GetMouse().MouseMovedEvent().Attach(*ms);
-    setup->GetMouse().MouseButtonEvent().Attach(*ms);
-    setup->GetRenderer().PostProcessEvent().Attach(*ms);
-    */
-    
     // Register the handler as a listener on up and down keyboard events.
     MoveHandler* move_h = new MoveHandler(*(setup->GetCamera()), setup->GetMouse());
-    setup->GetKeyboard()->KeyEvent().Attach(*move_h);
+    setup->GetKeyboard().KeyEvent().Attach(*move_h);
     setup->GetEngine().InitializeEvent().Attach(*move_h);
     setup->GetEngine().ProcessEvent().Attach(*move_h);
     setup->GetEngine().DeinitializeEvent().Attach(*move_h);
