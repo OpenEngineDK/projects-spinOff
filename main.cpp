@@ -59,7 +59,6 @@ int main(int argc, char** argv) {
     setup->GetEngine().DeinitializeEvent().Attach(*move_h);
 
     setup->GetCamera()->SetPosition(Vector<3, float>(20, 20, 0));
-    //setup->GetCamera()->SetDirection(Vector<3, float>(-1,-1,0), Vector<3, float>(0,0,1));
     setup->GetCamera()->LookAt(0, 0, 0);
 
     // Start the engine.
