@@ -35,6 +35,18 @@ using namespace OpenEngine::Renderers;
 using namespace OpenEngine::Renderers::OpenGL;
 using namespace OpenEngine::Utils;
 
+class MRIHandler : public IListener<KeyboardEventArg> {
+private:
+    MRINode* node;
+public:
+    MRIHandler(MRINode* n) { node = n; }
+
+    void Handle(KeyboardEventArg arg){
+        if (arg.type == EVENT_PRESS && arg.sym == KEY_f)
+            node->Flip(90);
+    }
+};
+
 /**
  * Main.
  */
@@ -50,6 +62,9 @@ int main(int argc, char** argv) {
     MRINode* mrinode = new MRINode();
     setup->GetEngine().ProcessEvent().Attach(*mrinode);
     setup->SetScene(*mrinode);
+
+    MRIHandler handle = MRIHandler(mrinode);
+    setup->GetKeyboard().KeyEvent().Attach(handle);
 
     // Register the handler as a listener on up and down keyboard events.
     MoveHandler* move_h = new MoveHandler(*(setup->GetCamera()), setup->GetMouse());
