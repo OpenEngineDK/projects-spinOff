@@ -1,5 +1,37 @@
 \section{Introduction}
 
+% MRI, the magnetic fields, imaging
+
+Medical resonance imaging, MRI, is a technique used mostly in clinical
+imaging to produce 3D images of patients. The technique relies on
+several magnetic fields to control and measure the spin property of
+atoms in the human body. Measuring every single atom is an infeasable
+task and the atoms are therefore grouped into discrete spin packets,
+whose net magnetization vector is a representation of the collected
+spin of all atoms in the spin packet. This net magnetization is then
+measured through an electric signal induced in surrounding coils,
+postprocessed and fourier transformed from a k-space image and back
+into image space.
+
+% Focus
+
+In this report we will focus on the basics of MRI and simulate the
+process. To keep the simulation simple our program will not simulate
+the positioning of the net magnetization in preparation for the signal
+acquisition. Here we will instead assume that the theory is correct
+and analytically position the net magnetization vectors. We will then
+proceed with simulation of the signal acquisition and and storing it
+in k-space.
+
+% Why GPGPU?
+
+Due to both the parallel nature of the spin packets affected by the
+magnetic fields and the signal acquisition being performed identically
+multiple times, MRI lends itself perfectly to dataparallel
+programming. For this reason we have chosen to implement our simulator
+in NVIDIA's Compute Unified Device Architecture, CUDA, and will
+explorer how best to utilise the graphics programming unit, GPU.
+
 
 
 %%% Local Variables:
