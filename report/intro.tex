@@ -1,17 +1,35 @@
+%% • The introduction must be dynamite. 
+%% – The reader forms an oppinion of the work right from the start... 
+%% • The introduction is an extension of the abstract. 
+%% • Should be easy to read and understand 
+%% • Should make it easy for anyone to tell
+%% – What your paper is about 
+%%   – What problem it solves
+%%   – Why the problem and solution is interesting and relevant (motivation and context). Is it a long- outstanding problem?
+%%   – What is new in your paper and how (much) does it improve on the strongest alternatives/previous work (include a few of the most relevant references here).
+
+%% • Start the introduction with the motivation. Think in large contexts and don’t be afraid to be a poet.
+%% • All implications, contributions and keypoints of your work must be included here.
+%% • Make it very clear how your work will impact the future of medical image computing (will people use it?).
+%% • If your work is pioneering, s-p-e-l-l i-t o-u-t.
+%% • Briefly make it clear how you evaluate your method in the Results section.
+%% • Make sure to explain where your method applies and where it does not apply (limitations).
+
+
 \section{Introduction}
 
 % MRI, the magnetic fields, imaging
 
-Medical resonance imaging, MRI, is a technique used mostly in clinical
-imaging to produce 3D images of patients. The technique relies on
-several magnetic fields to control and measure the spin property of
-atoms in the human body. Measuring every single atom is an infeasable
-task and the atoms are therefore grouped into discrete spin packets,
-whose net magnetization vector is a representation of the collected
-spin of all atoms in the spin packet. This net magnetization is then
-measured through an electric signal induced in surrounding coils,
-postprocessed and fourier transformed from a k-space image and back
-into image space.
+\IEEEPARstart{M}{edical} resonance imaging, MRI, is a technique used
+mostly in clinical imaging to produce 3D images of patients. The
+technique relies on several magnetic fields to control and measure the
+spin property of atoms in the human body. Measuring every single atom
+is an infeasable task and the atoms are therefore grouped into
+discrete spin packets, whose net magnetization vector is a
+representation of the collected spin of all atoms in the spin
+packet. This net magnetization is then measured through an electric
+signal induced in surrounding coils, postprocessed and fourier
+transformed from a k-space image and back into image space.
 
 % Focus
 
@@ -32,6 +50,7 @@ programming. For this reason we have chosen to implement our simulator
 in NVIDIA's Compute Unified Device Architecture, CUDA, and will
 explorer how best to utilise the graphics programming unit, GPU.
 
+% TODO Reults
 
 
 %%% Local Variables:

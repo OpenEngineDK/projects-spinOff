@@ -1,0 +1,22 @@
+% S/C 
+
+Jacques et al.\cite{sc} har tidligere vist at der kan opnås en massiv
+ydelsesforbedring ved at parallelisere superposition/convolution og
+lade grafikkortet om de hårde beregninger, så som raytracing til
+bestemmelse af radiological depth.
+
+% Siddon and fast raytracing
+
+Til raytracing bliver der altid taget udgangspunkt i Siddon's linear
+time raytracing algoritme fra 1985\cite{siddon}. Denne algoritme brød
+med tidligere algoritmer, der alle opfattede CT data som en række
+individuelle voxels, og i stedet anskuer den dataen som tre ortogonale
+sæt af parallelle planer med samme afstand mellem sig.
+
+Fox et al.\cite{fastraytracing} identificerede i 2005 problemet med at
+beregne alle texture indices for alle stykker af strålen og viste
+hvordan dette kunne gøres løbende mens strålen traces. De gjorde også
+rede for en naiv implementation af raytracing, inspireret af
+raycasting fra rendering af 3D legemer, ville lide under read-write
+konflikter og hvordan dette problem kunne løses ved at skifte
+synspunkt fra strålen til de enkelte voxels.

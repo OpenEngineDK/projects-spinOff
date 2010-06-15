@@ -3,57 +3,89 @@
 \usepackage[\documentstate]{fixme} % kræver at folk er smarte nok til at installere FiXme
 \usepackage[T1]{fontenc}
 \usepackage{babel}
-%\usepackage{lmodern} % vector font, ikke bitmap!!
-% ^- kun interessant med latex, pdflatex er vector i forvejen
+\usepackage{lmodern} % vector font, ikke bitmap!!
 \usepackage{graphicx}
 \usepackage{wrapfig}
 \usepackage[plainpages=false]{hyperref}
 \usepackage{verbatim}
-\usepackage{tikz}
-%\usepackage{subfig}
-%\usepackage{slashbox}
-\usepackage{color}
-\usepackage{listings}
-\usepackage{listing}
-\usepackage[round]{natbib}
-%\renewcommand{\danishhyphenmins}{22} % fuck lorte orddeling!
+\usepackage{subfig}
+\usepackage{slashbox}
+\renewcommand{\danishhyphenmins}{22} % fuck lorte orddeling!
 \usepackage[\documentstate]{ifdraft}
 \ifdraft{
   \usepackage{draftwatermark}
-  \SetWatermarkScale{4.0}
+  \SetWatermarkScale{1.0}
 }{}
 
-%% default lst options
+% subfig autoref hack
 
-%% Special environments
 
-\newenvironment{shcode}%
-{\verbatim}{\endverbatim}
+% or try \newcommand{\subfigureautorefname}{\figureautorefname}
 
-% use a TT font with bold 
-\renewcommand{\ttdefault}{pcr}
+% extend autoref for subfloats
+\usepackage{xspace}
+\usepackage{ifthen}
+\makeatletter
+\let\@autoref=\autoref
+\renewcommand*{\autoref}[2][]{\ifthenelse{\equal{#1}{}}{\@autoref{#2}}{\hyperref[#1]{\begin{NoHyper}\@autoref{#2}~\subref{#1}\end{NoHyper}}}\xspace}
+\makeatother
 
-\lstset{basicstyle=\ttfamily \footnotesize}
-\lstset{keywordstyle=\textbf}
-\lstset{commentstyle=\normalfont \textit}
-\lstset{stringstyle=\bfseries}
-\lstset{showstringspaces=false}
+%% end hack
 
-\lstset{frameround=tttt}
-\lstset{frame=tLBr}
+% \autoref names
+\renewcommand{\figureautorefname}{fig.}
+\renewcommand{\appendixautorefname}{bilag}
+\renewcommand{\chapterautorefname}{kapitel}
+\newcommand{\subfigureautorefname}{fig.}
+% \figureautorefname             *\figurename*
+% \tableautorefname              *\tablename*
+% \partautorefname               *\partname*
+% \appendixautorefname           *\appendixname*
+% \equationautorefname           *\equationname*
+% \Itemautorefname               *\Itemname*
+% \chapterautorefname            *\chaptername*
+% \sectionautorefname            *\sectionname*
+\renewcommand{\subsectionautorefname}{underafsnit} %         *\subsesctionname*
+% \subsubsectionautorefname      *\subsubsectionname*
+% \paragraphautorefname          *\paragraphname*
+% \Hfootnoteautorefname          *\Hfootnotename*
+% \AMSautorefname                *\AMSname*
+% \theoremautorefname            *\theoremname*
 
-\lstnewenvironment{pythoncode}{\lstset{language=Python}}{}
-\lstnewenvironment{cppcode}{\lstset{language=C++}}{}
-% \lstnewenvironment{shcode}{\lstset{language=sh}}{}
+%bibtex citations
+\usepackage{natbib} 
+\citestyle{chicago} % Chicago Manual of Style citations
+\bibliographystyle{dkchicago}
 
-%% Some commands
-\newcommand{\todo}[1]{\textcolor{red}{#1}\fixme{#1}}
+% Definitions
+\newcommand{\firmanavn}{Dyr \& Fritid} % ændre mig måske
+\newcommand{\designa}{2-delt design}
+\newcommand{\designb}{ikke-delt design}
 
-\newcommand{\class}[1]{\texttt{#1}}
-\newcommand{\method}[1]{\texttt{#1}}
-\newcommand{\file}[1]{\texttt{#1}}
-\newcommand{\code}[1]{\texttt{#1}}
+\newcounter{reqclass}
+\newcounter{reqnum}[reqclass]
+\newcounter{probnum}
+\newcounter{itrnum}
+\newenvironment{requirements}
+{ % begin
+  \stepcounter{reqclass}
+  \begin{itemize}
+}
+{ %end
+  \end{itemize}
+}
+% \def\req #1 #2{\item K#1 -- {\bf #2 }}
+\newcommand{\req}[2]{\stepcounter{reqnum}\item
+  K\arabic{reqclass}.\arabic{reqnum} --
+  \textbf{#1}\\#2 \label{req:\arabic{reqclass}.\arabic{reqnum}} }
 
+\newcommand{\prob}[1]{\stepcounter{probnum}\item P\arabic{probnum}: \\
+  #1}
+
+\newcommand{\itr}[1]{\stepcounter{itrnum}\item I\arabic{itrnum}: \\
+  #1}
+
+% TODO: Lav noget \newcounter gøjl
 
 %%% Local Variables: 
 %%% mode: latex

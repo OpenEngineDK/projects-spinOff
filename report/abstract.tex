@@ -1,0 +1,36 @@
+%% Isbrief:200-300words. 
+%% • Summarizes your work:
+%% – What problem does this paper solve?
+%% – Why is this problem important for medical image computing (the context and motivation)? 
+%% – How does your method work? 
+%% – How does it differ from previous work? 
+%% – How much better than previous work is it?
+%% • There are usually no references in the abstract
+%% • The abstract should be readable and understandable by non-experts
+
+%Paralleliser gøjlet for øget hastighed. (lær at gøre det)
+%Dose beregning er langsomt og ikke interaktivt endnu, parallelisering
+%kan afhjælpe dette.
+%Tager udgangspunkt i superposition/convolution, hvor radiological
+%depth bliver beregnet vha fast raytracing.
+%Gør det ikke. Men måske mere dybdegående forklaring af vores
+%algoritme. (Fabs udenfor loop I hope)
+
+
+Algoritmer til medicinsk billedbehandling har længe nydt godt af
+Moore's lov, at cpu hastigheder blev fordoblet hver 18 måned. Dette er
+ikke tilfældet længere, hvor cpuer i stedet fordobler antallet af
+kerner, og algoritmerne må derfor følge med og omskrives til let
+paralleliserbare algoritmer.
+
+I denne artikel sætter vi fokus på radioterapi, nærmere bestemt
+afsættelse af radioaktiv stråling i patienter og hvordan denne spreder
+sig gennem patienten. Med baggrund i nVidias \textbf{Compute Unified
+  Device Architecture}, CUDA, vil vi argumenterer for brugen af
+multikerne gpu'er til at løse dette problem og hvordan det er muligt
+at dataparalleliserer stråleafsætningen samt dens spredning.
+
+Vores implementation vil være todelt; først vil vi implementere
+uoptimerede CUDA kerner, hvor teorien vil være let at genkende i
+programmets algoritmer. Dernæst vil vi diskuterer og implementere
+forskellige optimeringer.
