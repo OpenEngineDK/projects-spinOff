@@ -35,33 +35,10 @@ packet is
 The complete signal from the excited slice is then
 
 \begin{displaymath}
-  M^*(t) = \sum^{(X, Y)}_{(x',y')} (M_x(t, \mathbf{p_{(x',y')}}) + i \cdot M_y(t, \mathbf{p_{(x',y')}}))
+    M^*(t) = \sum^{(X, Y)}_{(x',y')} (M_x(t, \mathbf{p_{(x',y')}}) + i \cdot M_y(t, \mathbf{p_{(x',y')}}))
 \end{displaymath}
 
 which is sampled in intervals of $t$ for the duration $\tau$.
-
-\subsection{Frequency and phase gradients}
-
-% Constant gradient field along the x axis (read-out direction). The
-% strength of the gradient field increases along the x-axis and never
-% changes over the course of the signal acquisition.
-
-\begin{displaymath}
-  v = \gamma (B_0 + x B_{G_f})
-\end{displaymath}
-
-
-% The y-axis is the phase encode direction and is phase encoded with a
-% phase gradient. Phase phase face phase.
-
-
-\begin{figure}
-  \centering
-  \includegraphics[width=5cm]{gradientSequence}
-  \caption{A timing diagram of the application of gradients with
-    respect to the RF pulse and signal acquisition.}
-  \label{fig:gradientSequence}
-\end{figure}
 
 
 
@@ -69,11 +46,19 @@ which is sampled in intervals of $t$ for the duration $\tau$.
 
 
 
-% Perform 2D fourier transform of the data in k-space, can Sangild's programs do this for us?
+% Perform 2D fourier transform of the data in k-space, cuda does this
+% with Sangilds wrapper
 
 \begin{displaymath}
-  f(\omega) = \int^\infty_{-\infty}f(t)e^{-i \omega t} dt = \int^\infty_{-\infty}f(t)(\cos(\omega t) - i \sin(\omega t)) dt \approx \sum^\infty_{-\infty}f(t)(\cos(\omega t) - i \sin(\omega t))
+  \begin{array}{rl}
+    f(\omega) &= \int^\infty_{-\infty}f(t)e^{-i \omega t} dt \\
+    &= \int^\infty_{-\infty}f(t)(\cos(\omega t) - i \sin(\omega t)) dt \\
+    &\approx \sum^\infty_{-\infty}f(t)(\cos(\omega t) - i \sin(\omega t))
+  \end{array}
 \end{displaymath}
+
+% The signal strength is the length of the complex number from the
+% fourier transform, not just the real component.
 
 
 %%% Local Variables:
