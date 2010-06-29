@@ -97,17 +97,50 @@ actually consists of the 3 seperat gradient fields described in
 As can be seen on \reffig{fig:gradientSequence} the individual
 gradients are never active at the same time.
 
-% Constant gradient field along the x axis (read-out direction). The
-% strength of the gradient field increases along the x-axis and never
-% changes over the course of the signal acquisition.
+The strenght of all the gradient fields applied are linearly
+increasing along a given normal, $\mathbf{G}$, and all gradient fields
+have the same direction as $\mathbf{B}_0$. The generel equation for a
+gradient field thus becomes.
 
 \begin{displaymath}
-  \omega = \gamma (B_0 + x B_{G_f})
+  \mathbf{B}_G(\mathbf{p}) = \langle 0, 0, \mathbf{G} \cdot \mathbf{p} \rangle
+\end{displaymath}
+
+
+The first gradient field that is applied is the slice selection
+gradient, which is active together with the RF field. As previously
+described $\mathbf{B}_{G_s}$ is responsable for ensuring that only a
+slice through the patient is affected by the RF pulse and thus that
+only this slice will produce a signal. In the theory behind MRI this
+slice is placed in the xy-plane with a normal $\langle 0, 0, G_s
+\rangle$ and the gradient field is therefore
+
+\begin{displaymath}
+  \mathbf{B}_{G_s}(\mathbf{p}) = \langle 0, 0, G_s p_z \rangle
 \end{displaymath}
 
 
 % The y-axis is the phase encode direction and is phase encoded with a
 % phase gradient.
+
+The next gradient field applied is phase encoding gradient,
+$\mathbf{B}_{G_\phi}$.
+
+
+\begin{displaymath}
+  \omega_\phi(\mathbf{p}) = \gamma (B_0 + B_{G_\phi} \cdot p_y)
+\end{displaymath}
+
+
+% Constant gradient field along the x axis. The strength of the
+% gradient field increases along the x-axis and never changes over the
+% course of the signal acquisition.
+
+\begin{displaymath}
+  \omega_f(\mathbf{p}) = \gamma (B_0 + B_{G_f} \cdot p_x)
+\end{displaymath}
+
+
 
 
 \begin{figure}
