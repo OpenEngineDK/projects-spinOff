@@ -1,60 +1,67 @@
 \section{MRI}
+\label{sec:MRI}
 
 % What MRI does
 
 Medical Resonance Imaging is a technique used for visualizing the
-amount of hydrogen atoms present in patient. Each voxel in the image
+amount of hydrogen atoms present in a patient. Each voxel in the image
 corrosponds to a spin packet and the intensity in the voxel is an
 approximation of how many hydrogen atoms was present within that
-peticular spin packet. This is useful in medical imaging as different
+particular spin packet. This is useful in medical imaging as different
 materials such as blood, bones and brain matter will produce different
 intensities and can thus be distinguised in the images.
 
 % The B0 magnetic field
 
-To control the direction of the hydrogen nucleus spin several magnetic
-fields are employed. The first is a static field called $\mathbf{B}_0$
-aligned along the length of the patiens body from toe to head. In
-clinical imaging this is taken as the z-axis. The effect of applying
-$\mathbf{B}_0$ is to align all spin packets net magnetization vectors
-along the z-axis. The net magnetization vector is then said to be at
-equilibrium. This does not mean that all the individuel spins of the
-hydrogens nuclei are pointing upwards, but the sum of all
-spindirections will produce a vector along the z-axis. The individuel
-spins are also precessing about the z-axis, but while the net
-magnetization is at equilibrium this precessing is not measurable.
+To control the direction of the hydrogen's nucleus spin several
+magnetic fields are employed. The first is a static field called
+$\mathbf{B}_0$ aligned along the length of the patiens body from toe
+to head. In clinical imaging this is taken as the z-axis. The effect
+of applying $\mathbf{B}_0$ is to align all spin packets net
+magnetization vectors along the z-axis. The net magnetization vector
+is then said to be at equilibrium. This does not mean that all the
+individuel spins of the hydrogens nuclei are pointing upwards, but the
+sum of all spindirections will produce a vector along the z-axis. The
+individuel spins are also precessing about the z-axis, but while the
+net magnetization is at equilibrium this precessing is not measurable.
 
 % RF pulse
 
 While at equilibrium the net magnetization vector doesn't produce any
 signal. To induce a signal in the surrounding coils the net
-magnetization will have to be flipped into the transverse plane. The
-precessing net magnetization will then induce a signal in the
-surrounding coils, which can be used to create the image. To flip the
-magnetization another magnetic field, $\mathbf{B}_1$, is
-used.
+magnetization will have to be flipped into the transverse plane,
+ie. the xy-plane. To flip the magnetization another magnetic field,
+$\mathbf{B}_1$, is used. This is called the RF field. Once the net
+magnetization vector has been rotated into the transverse plane, the
+RF field is turned off. The magnetic spin is again only affected by
+$\mathbf{B}_0$ and will therefore return to equilibrium. Because the
+net magnetization vector is still precessing about the z-axis, the
+spin will then induce a signal in the surrounding coils, which can be
+used to create the image.
 
 % Distinquishing signals with Slice selection, frequency encoding and
 % pulse encoding
 
 If all net magnetizations are flipped at the same time it will be
-impossible to distinguish their signal and the resulting image will be
-one huge. Three gradient fields are therefore used to distinguish the
-individuel spin packets. 
+impossible to distinguish their signal and the resulting image will
+consist of one gray voxel. A gradient field consisting of several
+smaller magnetic fields are therefore used to distinguish the
+individuel spin packets.
 
-The first is a slice selection gradient field, $\mathbf{B}_{G_s}$, which
-when applied will make only one slice react to the $\mathbf{B}_1$
-field, and therefore the coil will only receive signal form that
-slice.
+The first is a slice selection gradient field, $\mathbf{B}_{G_s}$,
+which when applied will make only one slice react to the
+$\mathbf{B}_1$ field, and therefore the coil will only receive signals
+from spin packets in that slice.
 
 The second gradient field, $\mathbf{B}_{G_\phi}$, phase shifts the net
-magnetizations transverse spin. And the third gradient field,
-$\mathbf{B}_{G_f}$, is a linear magnetic field gradient. The effect of
-$\mathbf{B}_{G_f}$ is to encode the frequency at which the net
-magnetization precesses in the transverse plane.
+magnetizations transverse spin. What this means is that the transverse
+spin of the net magnetizations are brought out of phase with the other
+netmagnetizations in the slice, thus giving them a uniquely detectable
+rotation. And the third gradient field, $\mathbf{B}_{G_f}$, is a
+linear magnetic field gradient. The effect of $\mathbf{B}_{G_f}$ is to
+encode the frequency at which the net magnetization precesses in the
+transverse plane.
 
 These last 2 gradients will make it possible for a fourier transform
 to 'recoqnize' the individuel spin packets and recreate the original
 image.
-
-% Acquiring the signal through coils?

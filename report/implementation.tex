@@ -1,5 +1,23 @@
 \section{Implementation}
 
+% model the B0 and BGf fields
+
+% Assume slice selection and possibly phase gradient
+
+% One kernel for Calculating several/all timesteps and store them in
+% an array. (one thread pr voxel in the original image)
+
+% Then have one kernel sum up the signal and write it in out k-space
+% image.
+
+% A last kernel will transform the image back to image space. Use
+% Sangilds fft wrapper.
+
+% If this image looks like crap then we don't care! Some mumbo jumbo
+% about where it might have gone wrong, possible some images showing
+% the net magnetization (with color interpretation) and then that's
+% all she wrote.
+
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-master: t

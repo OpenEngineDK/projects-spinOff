@@ -29,6 +29,7 @@
 \let\@autoref=\autoref
 \renewcommand*{\autoref}[2][]{\ifthenelse{\equal{#1}{}}{\@autoref{#2}}{\hyperref[#1]{\begin{NoHyper}\@autoref{#2}~\subref{#1}\end{NoHyper}}}\xspace}
 \makeatother
+\newcommand{\refsec}[1]{section \ref{#1}}
 
 %% end hack
 
