@@ -4,6 +4,36 @@
 
 % Assume slice selection and possibly phase gradient
 
+In our simulation we assume that the correct slice has been selected
+and excited, so we only work with a 2 dimensional image and the net
+magnetization vectors have been rotated into the transversal
+plane. This allows us to focus on the image acquisition phase.
+
+% Bloch equations with the gradient and B0, which is what we're
+% solving
+
+With only the static magnetic field $\mathbf{B}_0$ and
+$\mathbf{B}_{G_f} = \langle 0, 0, p_x * B_{G_f} \rangle$ active, the
+block equations simply to
+
+\begin{displaymath}
+  \begin{array}{l}
+    \frac{dM_x}{dt} = \gamma (B_0 + p_x * B_{G_f}) M_y - \frac{M_x}{T_2} \\
+    \frac{dM_y}{dt} = - \gamma (B_0 + p_x * B_{G_f}) M_x - \frac{M_y}{T_2} \\
+    \frac{dM_z}{dt} = - \frac{M_z - M_{eq}}{T_1}
+  \end{array}
+\end{displaymath}
+
+which have the analytical solution 
+
+\begin{displaymath}
+  \begin{array}{l}
+    M_x(t) = e^{-t/T_2}(M_x(0) cos(w_0 t + w_f t) - M_y(0) sin (w_0 t + w_f t)) \\
+    M_y(t) = e^{-t/T_2}(M_x(0) sin(w_0 t + w_f t) + M_y(0) cos (w_0 t + w_f t)) \\
+    M_z(t) = M_z(0) e^{t/T_1} + M_eq(1 - e^{-1/T_1})
+  \end{array}
+\end{displaymath}
+
 % One kernel for Calculating several/all timesteps and store them in
 % an array. (one thread pr voxel in the original image)
 
