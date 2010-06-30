@@ -83,7 +83,15 @@ $\tau_{90\degree}$. The time interval can be calculated using
   \tau_{90\degree} = \frac{1 / 4}{\gamma * \|\mathbf{B}_1\|}
 \end{displaymath}
 
-\subsection{Magnetic gradients}
+\subsection{Magnetic field gradients}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=5cm]{gradientSequence}
+  \caption{A timing diagram of the application of gradients with
+    respect to the RF pulse and signal acquisition.}
+  \label{fig:gradientSequence}
+\end{figure}
 
 Recall from earlier that if all net magnetizations are spinning in the
 same phase and at the same frequency, they are indistinguishable to
@@ -138,7 +146,18 @@ the y-axis and therefore has the form
   \mathbf{B}_{G_\phi}(\mathbf{p}) = \langle 0, 0, G_\phi p_y \rangle
 \end{displaymath}
 
-% TODO images of phase encoding
+\begin{figure}
+  \centering
+  \subfigure[In phase.]{
+    \includegraphics[width=5cm]{inPhase}
+  }
+  \subfigure[Out of phase.]{
+    \includegraphics[width=5cm]{outOfPhase}
+  }
+  \caption{Figures of in-phase and phase shifted net
+    magnetizations. Here the phase shift is along the x-axis.}
+  \label{fig:phaseShift}
+\end{figure}
 
 With the phase encoding gradient active, each net magnetization vector
 along the y-axis will precess at it's own unique larmor frequency. 
@@ -150,17 +169,25 @@ along the y-axis will precess at it's own unique larmor frequency.
 It therefore follows that when the phase encode gradient is turned
 off, all the net magnetization vectors will return to precessing at
 the same larmor frequency, $\omega_0$, but out of phase with each
-other. In \refsec{sec:imaging} we shall see how this enables the
-fourier transform to distinguish spin packets along the y-axis.
+other, as can be seen on \reffig{fig:phaseShift}. In
+\refsec{sec:imaging} we shall see how this enables the fourier
+transform to distinguish spin packets along the y-axis.
 
-TODO phase time and strength
+To enable the fourier transform to reconstuct the intensity of a given
+spin packet, we need the phase encoding oscilate. This is achieved by
+letting the strength of the phase gradient, $B_{G_\phi}$, start at
+$G_{\phi_{max}}$ for the first slice excitation and then linearly drop to
+$-G_{\phi_{max}}$ in the last excitation.
+
+%TODO phase time and calculating strength
+
 
 
 % Constant gradient field along the x axis. The strength of the
 % gradient field increases along the x-axis and never changes over the
 % course of the signal acquisition.
 
-The last gradient field is the frequency encoding gradient that
+The final gradient field is the frequency encoding gradient that
 encodes the signal along the x-axis.
 
 \begin{displaymath}
@@ -183,13 +210,6 @@ the coordinate system in any way we like and thus the theory
 generalizes to gradients in any direction, which is useful for oblique
 image acquisition.
 
-\begin{figure}
-  \centering
-  \includegraphics[width=5cm]{gradientSequence}
-  \caption{A timing diagram of the application of gradients with
-    respect to the RF pulse and signal acquisition.}
-  \label{fig:gradientSequence}
-\end{figure}
 
 
 
