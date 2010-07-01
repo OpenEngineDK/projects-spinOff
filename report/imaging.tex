@@ -50,10 +50,51 @@ sampled.
 
 \subsection{K-space}
 
-The signal acquired is stored in K-space
+The signal acquired is stored in K-space. Each specific excited slice
+in the patient corrosponds to a two dimensional K-space image with
+complex entries. A row in the image along the x-axis, the frequency
+encoding direction, hold signals sampled over time $\tau$ at intervals
+$t$ after one application of the RF pulse. All the lines along the
+y-axis, the phase encoding direction, represent samples with different
+phase encodings. An example of a K-space image can be seen in
+\reffig{fig:kSpace}, where two net mangnetizations have produced a
+signal.
+
+With the information in K-space it is possible to restore the original
+hydrogen intensities from the sampled FID signal. Fourier transforming
+the image in \reffig{fig:kSpace} in its frequency encoding direction,
+yields the frequency domain information seen in
+\reffig{fig:frequencyDomain}. Fourier transforming this in the phase
+encoding direction will give us the hydrogen intensities of the spin
+packets, as can be seen in \reffig{fig:phaseDomain}. Here we can also
+see why the phase encoding gradient varies for each excitation, as
+that gives the oscilation along the phase encoding direction.
+
 
 % Perform 2D fourier transform of the data in k-space, cuda does this
 % with Sangilds wrapper
+
+\begin{figure}
+  \centering
+  \subfigure[K-space]{
+    \includegraphics[width=4.5cm]{kSpace}
+    \label{fig:kSpace}
+  }
+  \subfigure[Frequency domain information extracted by performing a
+    Fourier transform along the x-axis.]{
+    \includegraphics[width=4.5cm]{frequencyDomain}
+    \label{fig:frequencyDomain}
+  }
+  \subfigure[Frequency and phase domain information extracted by performing a
+    2D Fourier transform along the x- and y-axis.]{
+    \includegraphics[width=4.5cm]{phaseDomain}
+    \label{fig:phaseDomain}
+  }
+  \caption{The effect from fourier transforming a K-space image.}
+  \label{fig:kSpaceTransformations}
+\end{figure}
+
+The one dimensional fourier transform is given by 
 
 \begin{displaymath}
   \begin{array}{rl}
@@ -63,26 +104,18 @@ The signal acquired is stored in K-space
   \end{array}
 \end{displaymath}
 
-\begin{figure}
-  \centering
-  \subfigure[K-space]{
-    \includegraphics[width=4.5cm]{kSpace}
-  }
-  \subfigure[Frequency domain information extracted by performing a
-    Fourier transform along the x-axis.]{
-    \includegraphics[width=4.5cm]{frequencyDomain}
-  }
-  \subfigure[Frequency and phase domain information extracted by performing a
-    2D Fourier transform along the x- and y-axis.]{
-    \includegraphics[width=4.5cm]{phaseDomain}
-  }
-  \caption{The effect from fourier transforming a K-space image.}
-  \label{fig:phaseShift}
-\end{figure}
-
-
 % The signal strength is the length of the complex number from the
 % fourier transform, not just the real component.
+
+Since the fourier transform is both applied to and returns complex
+numbers, the hydrogen intensity produced by a two dimensional
+transform is also a complex number, $h'$. Converting this to the
+final intensity, $h$, is done by taking the modulus of the complex
+intensity.
+
+\begin{displaymath}
+  h = \|h'\| = \|h'_{real} + i h'_{imaginary}\| = \sqrt{h_{real}^{'2} + i h_{imaginary}^{'2}}
+\end{displaymath}
 
 
 %%% Local Variables:
