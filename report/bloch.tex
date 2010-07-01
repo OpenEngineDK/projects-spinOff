@@ -176,10 +176,32 @@ transform to distinguish spin packets along the y-axis.
 To enable the fourier transform to reconstuct the intensity of a given
 spin packet, we need the phase encoding oscilate. This is achieved by
 letting the strength of the phase gradient, $B_{G_\phi}$, start at
-$G_{\phi_{max}}$ for the first slice excitation and then linearly drop to
-$-G_{\phi_{max}}$ in the last excitation.
+$G_{\phi_{max}}$ for the first slice excitation and then linearly drop
+to $-G_{\phi_{max}}$ in the last excitation. Calculating the
+$-G_{\phi_{max}}$ is dependent on the field of view, FOV
 
-%TODO phase time and calculating strength
+\begin{displaymath}
+  FOV = \frac{f_s}{\gamma \cdot G_{phi}}
+\end{displaymath}
+
+where $f_s$ is the sampling rate, ie. the frequency between each
+sample taken.
+
+$-G_{\phi_{max}}$ is then calculated as
+
+\begin{displaymath}
+  \begin{array}{rl}
+    \int_{\tau_\phi} G_{\phi_{max}} dt &= \frac{N}{2 \cdot \gamma \cdot FOV}\\
+    &= \frac{N \cdot G_{phi}}{2 \cdot \gamma \cdot f_s}
+  \end{array}
+\end{displaymath}
+
+where $N$ is the number of phase encoding steps. The integral
+$\int_{\tau_\phi} G_{\phi_{max}}$ is taken over the time that the
+gradient field is active, $\tau_\phi$. The shape of the phase encoding
+gradient field over time is not important, which is why we will use
+$G_{\phi_{max}} = \int_{\tau_\phi} G_{\phi_{max}} dt / tau_\phi$ in our
+simulator.
 
 
 
@@ -202,7 +224,7 @@ frequency.
   \omega_f(\mathbf{p}) = \gamma (B_0 + B_{G_f} \cdot p_x)
 \end{displaymath}
 
-TODO time and strength?
+% TODO time and strength?
 
 While we here have placed all gradient fields along a specific axis in
 our coordinate system, one should remember that we are free to place
