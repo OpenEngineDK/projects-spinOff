@@ -14,6 +14,8 @@ darcs-dev /projects/spinOff fh.daimi.au.dk:/users/cgd/code/projects/spinOff
 dist /extensions/SpinOff/SpinOff.dist	 http://openengine.dk/code/extensions/SpinOff/SpinOff.dist
 
 # required extensions
+darcs /extensions/TexUtils           http://openengine.dk/code/extensions/TexUtils
+darcs /extensions/CUDA           http://openengine.dk/code/extensions/CUDA
 darcs /extensions/SetupHelpers           http://openengine.dk/code/extensions/SetupHelpers
 darcs /extensions/HUD                    http://openengine.dk/code/extensions/HUD
 darcs /extensions/SDL                    http://openengine.dk/code/extensions/SDL
@@ -25,6 +27,7 @@ darcs /extensions/TGAResource            http://openengine.dk/code/extensions/TG
 darcs /extensions/OBJResource            http://openengine.dk/code/extensions/OBJResource
 darcs /extensions/AccelerationStructures http://openengine.dk/code/extensions/AccelerationStructures
 
+darcs-dev /extensions/TexUtils           fh.daimi.au.dk:/users/cgd/code/extensions/TexUtils
 darcs-dev /extensions/SetupHelpers           fh.daimi.au.dk:/users/cgd/code/extensions/SetupHelpers
 darcs-dev /extensions/HUD                    fh.daimi.au.dk:/users/cgd/code/extensions/HUD
 darcs-dev /extensions/SDL                    fh.daimi.au.dk:/users/cgd/code/extensions/SDL
