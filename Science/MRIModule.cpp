@@ -14,7 +14,7 @@
 
 #include <Logging/Logger.h>
 #include "../FFT_wrap/FFT.hcu"
-
+#include "MRI.hcu"
 
 namespace OpenEngine {
 namespace Science {
@@ -71,6 +71,8 @@ void MRIModule::Handle(KeyboardEventArg arg) {
             }
         }
 
+        MRI_test(data);
+
         cuFloatComplex* devData;
         cudaMalloc((void**)&devData, sizeof(cuFloatComplex) * w * h);
         
@@ -112,8 +114,36 @@ void MRIModule::Handle(KeyboardEventArg arg) {
     } 
 }
 
+    using namespace Utils::Inspection;
+
+ValueList MRIModule::Inspection() {
+    ValueList values;
+
+    /* Test value  */ {
+        RWValueCall<MRIModule, bool> *v
+            = new RWValueCall<MRIModule, bool>(*this,
+                                               &MRIModule::GetTest,
+                                               &MRIModule::SetTest);
+        v->name = "test";
+        values.push_back(v);
+        
+    }
+
+    return values;
+}
 
 
 } // NS Science
+
+namespace Utils {
+namespace Inspection {
+    
+ValueList Inspect(Science::MRIModule *mri) {
+    return mri->Inspection();
+}
+    
+}
+}
+
 } // NS OpenEngine
 

@@ -12,6 +12,9 @@ darcs-dev /projects/spinOff fh.daimi.au.dk:/users/cgd/code/projects/spinOff
 
 # dist dependencies
 dist /extensions/SpinOff/SpinOff.dist	 http://openengine.dk/code/extensions/SpinOff/SpinOff.dist
+dist /extensions/Inspection/Inspection.dist       http://www.openengine.dk/code/extensions/Inspection/Inspection.dist
+dist /extensions/InspectionBar/InspectionBar.dist       http://www.openengine.dk/code/extensions/InspectionBar/InspectionBar.dist
+
 
 # required extensions
 darcs /extensions/TexUtils           http://openengine.dk/code/extensions/TexUtils

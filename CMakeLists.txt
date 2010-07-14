@@ -6,6 +6,7 @@ SET( CUDA_KERNELS "CUDA_KERNELS")
 CUDA_ADD_LIBRARY(${CUDA_KERNELS}
   FFT_wrap/fft.cu
   FFT_wrap/batchfft.cu
+  Science/MRI.cu
 )
 
 
@@ -43,5 +44,8 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME}
   Extensions_SetupHelpers  
   Extensions_SpinOff  
   Extensions_GenericHandlers
+  Extensions_AntTweakBar
+  Extensions_Inspection
+  Extensions_InspectionBar
   ${CUDA_KERNELS}
 )

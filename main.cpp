@@ -19,6 +19,7 @@
 
 #include <Display/Viewport.h>
 #include <Display/SDLEnvironment.h>
+#include <Display/AntTweakBar.h>
 
 #include <Renderers/IRenderingView.h>
 #include <Renderers/OpenGL/MRIRenderingView.h>
@@ -29,6 +30,8 @@
 #include <Utils/SimpleSetup.h>
 #include <Utils/MoveHandler.h>
 #include <Utils/CairoTextTool.h>
+
+#include <Utils/InspectionBar.h>
 
 #include "Science/MRIModule.h"
 
@@ -184,7 +187,15 @@ int main(int argc, char** argv) {
     DirectoryManager::AppendPath("./projects/spinOff/report/pics/");
 
     setup->GetRenderer().SetBackgroundColor(Vector<4,float>(0.0));
+
+    // Ant tweak bar
+    AntTweakBar *atb = new AntTweakBar();
+    atb->AttachTo(setup->GetRenderer());
     
+    setup->GetKeyboard().KeyEvent().Attach(*atb);
+    setup->GetMouse().MouseMovedEvent().Attach(*atb);
+    setup->GetMouse().MouseButtonEvent().Attach(*atb);
+
 
     // Graphics
     ITextureResourcePtr girl = ResourceManager<ITextureResource>::Create("frontpage2.jpg");
@@ -197,22 +208,14 @@ int main(int argc, char** argv) {
     setup->GetEngine().DeinitializeEvent().Attach(*mri);
     setup->GetKeyboard().KeyEvent().Attach(*mri);
 
+    atb->AddBar(new InspectionBar("mri", Inspect(mri)));
+
     // Wall
     Wall wall(setup->GetTextureLoader());
 
     wall(0,0) = make_pair<>(girl, "Girl");
     wall(1,0) = make_pair<>(mri->GetOutputTexture(), "output");
     wall(2,0) = make_pair<>(mri->GetInverseTexture(), "inverse");
-    // wall(2,0) = make_pair<>(girl, "Girl!");
-    // wall(3,0) = make_pair<>(girl, "Girl!");
-    // wall(0,1) = make_pair<>(girl, "Girl!");
-    // wall(1,1) = make_pair<>(girl, "Girl!");
-    // wall(2,1) = make_pair<>(girl, "Girl!");
-    // wall(3,1) = make_pair<>(girl, "Girl!");
-    // wall(0,2) = make_pair<>(girl, "Girl!");
-    // wall(1,2) = make_pair<>(girl, "Girl!");
-    // wall(2,2) = make_pair<>(girl, "Girl!");
-    // wall(3,2) = make_pair<>(girl, "Girl!");
     
 
     ISceneNode *wallNode = wall.MakeScene();
@@ -243,8 +246,8 @@ int main(int argc, char** argv) {
     // setup->GetCamera()->LookAt(0, 0, 0);
 
     // Start the engine.
-    setup->GetEngine().Start();
-
+    setup->GetEngine().Start();    
+    
     // Return when the engine stops.
     return EXIT_SUCCESS;
 }

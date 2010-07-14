@@ -15,7 +15,7 @@
 #include <Devices/IKeyboard.h>
 #include <Resources/ITexture2D.h>
 #include <Resources/EmptyTextureResource.h>
-
+#include <Utils/IInspector.h>
 
 namespace OpenEngine {
 namespace Science {
@@ -35,6 +35,8 @@ private:
     ITextureResourcePtr img;
     EmptyTextureResourcePtr outputTexture;
     EmptyTextureResourcePtr inverseTexture;
+
+    bool test;
 public:
     MRIModule(ITextureResourcePtr img);
     void Handle(ProcessEventArg arg);
@@ -45,9 +47,24 @@ public:
     EmptyTextureResourcePtr GetOutputTexture() { return outputTexture; }
     EmptyTextureResourcePtr GetInverseTexture() { return inverseTexture; }
 
+    Utils::Inspection::ValueList Inspection();
+
+    bool GetTest() { return test; }
+    void SetTest(bool b) {test = b ;}
+
 };
 
 } // NS Science
+
+namespace Utils {
+namespace Inspection {
+    
+    ValueList Inspect(Science::MRIModule *);
+    
+}
+}
+
+
 } // NS OpenEngine
 
 #endif // _OE_M_R_I_MODULE_H_
