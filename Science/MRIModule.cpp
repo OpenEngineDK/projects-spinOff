@@ -129,14 +129,14 @@ void MRIModule::Handle(KeyboardEventArg arg) {
 using namespace Utils::Inspection;
 
 #define MRI_INSPECTION(type, field, _name)                              \
-    {                                                                   \
+    do {                                                                \
     RWValueCall<MRIModule, type> *v                                     \
     = new RWValueCall<MRIModule, type>(*this,                           \
                                        &MRIModule::Get##field,          \
                                        &MRIModule::Set##field);         \
     v->name = _name;                                                    \
     values.push_back(v);                                                \
-    }
+    } while (0)
 
 ValueList MRIModule::Inspection() {
     ValueList values;
