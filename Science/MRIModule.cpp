@@ -86,9 +86,15 @@ void MRIModule::Handle(KeyboardEventArg arg) {
         for (unsigned int i=0;i<w;i++) {
             for (unsigned int j=0;j<h;j++) {
                 cuFloatComplex c = data[i*h+j];
-                (*outputTexture)(i,j,0) = 0;//255*sqrt(c.x*c.x + c.y*c.y);
-                (*outputTexture)(i,j,1) = 255*c.x;
-                (*outputTexture)(i,j,2) = 255*c.y;
+                char intens = 255*sqrt(c.x*c.x + c.y*c.y)/3;
+                (*outputTexture)(i,j,0) = intens;
+                (*outputTexture)(i,j,1) = intens;
+                (*outputTexture)(i,j,2) = intens;
+
+
+                // (*outputTexture)(i,j,0) = 0;//255*sqrt(c.x*c.x + c.y*c.y);
+                // (*outputTexture)(i,j,1) = 255*c.x;
+                // (*outputTexture)(i,j,2) = 255*c.y;
             }
         }
         outputTexture->RebindTexture();
@@ -114,20 +120,22 @@ void MRIModule::Handle(KeyboardEventArg arg) {
     } 
 }
 
-    using namespace Utils::Inspection;
+using namespace Utils::Inspection;
+
+#define MRI_INSPECTION(type, field, _name)                              \
+    {                                                                   \
+    RWValueCall<MRIModule, type> *v                                     \
+    = new RWValueCall<MRIModule, type>(*this,                           \
+                                       &MRIModule::Get##field,          \
+                                       &MRIModule::Set##field);         \
+    v->name = _name;                                                    \
+    values.push_back(v);                                                \
+    }
 
 ValueList MRIModule::Inspection() {
     ValueList values;
 
-    /* Test value  */ {
-        RWValueCall<MRIModule, bool> *v
-            = new RWValueCall<MRIModule, bool>(*this,
-                                               &MRIModule::GetTest,
-                                               &MRIModule::SetTest);
-        v->name = "test";
-        values.push_back(v);
-        
-    }
+    MRI_INSPECTION(bool, Test, "test") // Test 2
 
     return values;
 }
