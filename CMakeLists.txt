@@ -4,7 +4,7 @@ SET( PROJECT_NAME "spinOff")
 SET( CUDA_KERNELS "CUDA_KERNELS")
 
 CUDA_ADD_LIBRARY(${CUDA_KERNELS}
-  FFT_wrap/fft.cu
+  FFT_wrap/FFT.cu
   FFT_wrap/batchfft.cu
   Science/MRI.cu
 )

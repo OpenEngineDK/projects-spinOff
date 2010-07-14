@@ -8,8 +8,8 @@
 //--------------------------------------------------------------------
 
 
-#ifndef _OE_M_R_I_MODULE_H_
-#define _OE_M_R_I_MODULE_H_
+#ifndef _OE_MRI_MODULE_H_
+#define _OE_MRI_MODULE_H_
 
 #include <Core/IModule.h>
 #include <Devices/IKeyboard.h>
@@ -36,7 +36,9 @@ private:
     EmptyTextureResourcePtr outputTexture;
     EmptyTextureResourcePtr inverseTexture;
 
+    bool running;
     bool test;
+    float b0;
 public:
     MRIModule(ITextureResourcePtr img);
     void Handle(ProcessEventArg arg);
@@ -51,6 +53,12 @@ public:
 
     bool GetTest() { return test; }
     void SetTest(bool b) {test = b ;}
+
+    bool GetRunning() { return running; }
+    void SetRunning(bool running) { this->running = running; }
+
+    float GetB0() { return b0; }
+    void SetB0(float b0) { this->b0 = b0; }
 
 };
 
@@ -67,4 +75,4 @@ namespace Inspection {
 
 } // NS OpenEngine
 
-#endif // _OE_M_R_I_MODULE_H_
+#endif // _OE_MRI_MODULE_H_

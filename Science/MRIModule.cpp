@@ -28,11 +28,17 @@ MRIModule::MRIModule(ITextureResourcePtr img)
                                                  24))
     , inverseTexture(EmptyTextureResource::Create(img->GetWidth(), 
                                                   img->GetHeight(), 
-                                                  8)) {
-}
+                                                  8))
+    , running(false)
+    , b0(1.0)
+ {
+ }
 
 void MRIModule::Handle(ProcessEventArg arg) {
-    
+    if (running) {
+        logger.info << "running kernel (dt: " << arg.approx << ")" << logger.end;
+        MRI_step(arg.approx, NULL, 100, 100, b0);
+    }
 }
 
 void MRIModule::Handle(InitializeEventArg arg) {
@@ -57,7 +63,7 @@ void MRIModule::Handle(KeyboardEventArg arg) {
 
         UCharTexture2D* input = dynamic_cast<UCharTexture2D*>(img.get()); 
 
-        logger.info << "input = " << input << logger.end;
+        //logger.info << "input = " << input << logger.end;
 
         for (unsigned int i=0;i<w;i++) {
             for (unsigned int j=0;j<h;j++) {
@@ -135,7 +141,8 @@ using namespace Utils::Inspection;
 ValueList MRIModule::Inspection() {
     ValueList values;
 
-    MRI_INSPECTION(bool, Test, "test") // Test 2
+    MRI_INSPECTION(bool, Running, "running"); // simulation toggle
+    MRI_INSPECTION(float, B0, "B0 (Tesla)");  // B0 field strength
 
     return values;
 }
