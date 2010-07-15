@@ -31,13 +31,17 @@ MRIModule::MRIModule(ITextureResourcePtr img)
                                                   8))
     , running(false)
     , b0(1.0)
+    , spinPackets(NULL)
+    , eq(NULL)
  {
  }
 
 void MRIModule::Handle(ProcessEventArg arg) {
     if (running) {
-        logger.info << "running kernel (dt: " << arg.approx << ")" << logger.end;
-        MRI_step(arg.approx, NULL, 100, 100, b0);
+        float dt = arg.approx * 0.000001;
+
+        logger.info << "running kernel (dt: " << dt << "sec)" << logger.end;
+        MRI_step(dt, spinPackets, eq, img->GetWidth(), img->GetHeight(), b0);
     }
 }
 
@@ -45,6 +49,30 @@ void MRIModule::Handle(InitializeEventArg arg) {
     INITIALIZE_CUDA();
     //logger.info << PRINT_CUDA_DEVICE_INFO() << logger.end;
 
+    unsigned int w = img->GetWidth();
+    unsigned int h = img->GetHeight();
+
+    float* data = (float*)malloc(sizeof(float3) * w * h);
+    float* meq  = (float*)malloc(sizeof(float) * w * h);
+    float scale = 1.0;
+
+    for (unsigned int i=0;i<w*h;i++) {
+        float pix = (0.3*pixel[0] + 0.59*pixel[1] + 0.11*pixel[2]);
+        pix /= 255;
+        
+        data[i*3]   = 0.0;
+        data[i*3+1] = 0.0;
+        data[i*3+2] = scale*pix;
+
+        meq[i] = scale*pix;
+    }
+
+    cudaMalloc((void**)&spinPackets, sizeof(float3) * w * h);        
+    cudaMalloc((void**)&eq, sizeof(float) * w * h);        
+    cudaMemcpy(spinPackets, data, w * h * sizeof(float3), cudaMemcpyHostToDevice);
+    cudaMemcpy(eq, meq, w * h * sizeof(float), cudaMemcpyHostToDevice);
+    free(data);    
+    free(meq);    
 }
 
 void MRIModule::Handle(DeinitializeEventArg arg) {

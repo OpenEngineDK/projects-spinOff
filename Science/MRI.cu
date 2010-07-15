@@ -1,28 +1,39 @@
 // hello world
 
 #include "MRI.hcu"
+#include "float_util.hcu"
 
-__constant__ float  c_b0;
-__constant__ float3 c_b1;
-__global__ void MRI_step_kernel(float dt, float* spin_packs);
+__constant__ float3 b;
+
+const float T1 = 1e-5; // spin lattice in seconds.
+const float T2 = 1e-6; // spin spin in seconds.
+const float e = 2.718281828;
+const float GYROMAGNETIC_RATIO = 42.58e6; // hertz pr tesla
+const float BOLTZMANN_CONSTANT = 1.3805e-23; // Joule / Kelvin
+const float PLANCK_CONSTANT = 6.626e-34; // Joule * seconds
+
 
 
 void MRI_test(cuFloatComplex* input) {
         
 }
 
-__host__ void MRI_step(float dt, float* spin_packs, unsigned int w, unsigned int h, float b0) {
-    const float3 b1 = make_float3(0.0,0.0,0.0);
-    cudaMemcpyToSymbol(c_b0, &b0, sizeof(float));
-    cudaMemcpyToSymbol(c_b1, &b1, sizeof(float3));
+__global__ void MRI_step_kernel(float dt, float3* spin_packs, float* eq) {
+    //unsigned int idx = 0;
+
+    //float3 m = spin_packs[idx];
+    //spin_packs[idx] += cross(GYROMAGNETIC_RATIO * m, b) - make_float(m.x / T2, m.y / T2, 0.0)  - make_float(0.0, 0.0, (m.z - meq)/T1);
+}
+
+
+__host__ void MRI_step(float dt, float* spin_packs, float* eq, unsigned int w, unsigned int h, float b0) {
+    const float3 _b = make_float3(0.0,0.0,b0);
+    cudaMemcpyToSymbol(b, &_b, sizeof(float3));
 
 	dim3 blockDim(512,1,1);
 	dim3 gridDim(int(((double)(w*h))/(double)blockDim.x),1,1);
-    MRI_step_kernel<<< gridDim, blockDim >>>(dt, spin_packs);
+    MRI_step_kernel<<< gridDim, blockDim >>>(dt, (float3*)spin_packs, eq);
 }
 
 
 
-__global__ void MRI_step_kernel(float dt, float* spin_packs) {
-
-}

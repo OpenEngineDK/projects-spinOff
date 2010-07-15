@@ -39,6 +39,7 @@ private:
     bool running;
     bool test;
     float b0;
+    float* spinPackets, *eq;
 public:
     MRIModule(ITextureResourcePtr img);
     void Handle(ProcessEventArg arg);
