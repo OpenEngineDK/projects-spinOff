@@ -30,7 +30,6 @@
 #include <Utils/SimpleSetup.h>
 #include <Utils/MoveHandler.h>
 #include <Utils/CairoTextTool.h>
-
 #include <Utils/InspectionBar.h>
 
 #include "Science/MRIModule.h"
@@ -216,6 +215,7 @@ int main(int argc, char** argv) {
     wall(0,0) = make_pair<>(girl, "Girl");
     wall(1,0) = make_pair<>(mri->GetOutputTexture(), "output");
     wall(2,0) = make_pair<>(mri->GetInverseTexture(), "inverse");
+    wall(0,1) = make_pair<>(mri->GetTestTexture(), "test output");
     
 
     ISceneNode *wallNode = wall.MakeScene();

@@ -29,6 +29,9 @@ MRIModule::MRIModule(ITextureResourcePtr img)
     , inverseTexture(EmptyTextureResource::Create(img->GetWidth(), 
                                                   img->GetHeight(), 
                                                   8))
+    , testOutputTexture(EmptyTextureResource::Create(img->GetWidth(), 
+                                                     img->GetHeight(), 
+                                                     24))
     , running(false)
     , b0(1.0)
     , spinPackets(NULL)
@@ -48,9 +51,21 @@ void MRIModule::Handle(ProcessEventArg arg) {
 
         float* data = (float*)malloc(sizeof(float3) * w * h);
         cudaMemcpy(data, spinPackets, w * h * sizeof(float3), cudaMemcpyDeviceToHost);
+
+        for (unsigned int i=0;i<w;i++) {
+            for (unsigned int j=0;j<h;j++) {                
+                (*testOutputTexture)(i,j,0) = data[(i*h+j)*3+0]*255;
+                (*testOutputTexture)(i,j,1) = data[(i*h+j)*3+1]*255;
+                (*testOutputTexture)(i,j,2) = data[(i*h+j)*3+2]*255;
+            }
+        }
+        testOutputTexture->RebindTexture();
+
+
         unsigned int index = idx;
         Vector<3,float> magnet(data[index*3], data[index*3+1], data[index*3+2]);
         logger.info << "reading index: " << index << " with value: " << magnet << logger.end;
+
         free(data);
     }
 }
@@ -95,7 +110,9 @@ void MRIModule::Handle(DeinitializeEventArg arg) {
 }
 
 void MRIModule::Handle(KeyboardEventArg arg) {
-    if (arg.sym == KEY_k && arg.type == EVENT_RELEASE) {
+    if (arg.type != EVENT_RELEASE)
+        return;
+    if (arg.sym == KEY_k) {
         
         unsigned int w = img->GetWidth();
         unsigned int h = img->GetHeight();

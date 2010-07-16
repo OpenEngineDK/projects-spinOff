@@ -35,6 +35,7 @@ private:
     ITextureResourcePtr img;
     EmptyTextureResourcePtr outputTexture;
     EmptyTextureResourcePtr inverseTexture;
+    EmptyTextureResourcePtr testOutputTexture;
 
     bool running;
     bool test;
@@ -50,6 +51,7 @@ public:
     
     EmptyTextureResourcePtr GetOutputTexture() { return outputTexture; }
     EmptyTextureResourcePtr GetInverseTexture() { return inverseTexture; }
+    EmptyTextureResourcePtr GetTestTexture() { return testOutputTexture; }
 
     Utils::Inspection::ValueList Inspection();
 
