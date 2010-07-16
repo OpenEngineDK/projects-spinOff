@@ -21,7 +21,7 @@ __global__ void MRI_step_kernel(float dt, float3* spin_packs, float* eq) {
     unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
     float3 m = spin_packs[idx];
-    /* spin_packs[idx] += dt*(cross(GYROMAGNETIC_RATIO * m, b) - make_float3(m.x / T2, m.y / T2, 0.0)  - make_float3(0.0, 0.0, (m.z - eq[idx])/T1)); */
+    spin_packs[idx] += dt*(cross(GYROMAGNETIC_RATIO * m, b) - make_float3(m.x / T2, m.y / T2, 0.0)  - make_float3(0.0, 0.0, (m.z - eq[idx])/T1)); 
 }
 
 

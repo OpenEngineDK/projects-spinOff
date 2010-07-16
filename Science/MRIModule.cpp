@@ -77,6 +77,8 @@ void MRIModule::Handle(InitializeEventArg arg) {
     unsigned int w = img->GetWidth();
     unsigned int h = img->GetHeight();
 
+    logger.info << "max index: " << w*h << logger.end;
+
     float* data = (float*)malloc(sizeof(float3) * w * h);
     float* meq  = (float*)malloc(sizeof(float) * w * h);
     float scale = 1.0;
@@ -199,10 +201,13 @@ using namespace Utils::Inspection;
 
 ValueList MRIModule::Inspection() {
     ValueList values;
+    unsigned int w = img->GetWidth();
+    unsigned int h = img->GetHeight();
 
     MRI_INSPECTION(bool, Running, "running"); // simulation toggle
     MRI_INSPECTION(float, B0, "B0 (Tesla)");  // B0 field strength
     MRI_INSPECTION(unsigned int, Index, "test index");  // 
+    ((RWValue<unsigned int>*)values.back())->properties[MAX] = w*h;
 
     return values;
 }
