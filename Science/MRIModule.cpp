@@ -56,15 +56,20 @@ void MRIModule::Handle(InitializeEventArg arg) {
     float* meq  = (float*)malloc(sizeof(float) * w * h);
     float scale = 1.0;
 
-    for (unsigned int i=0;i<w*h;i++) {
-        float pix = (0.3*pixel[0] + 0.59*pixel[1] + 0.11*pixel[2]);
-        pix /= 255;
-        
-        data[i*3]   = 0.0;
-        data[i*3+1] = 0.0;
-        data[i*3+2] = scale*pix;
+    UCharTexture2D* input = dynamic_cast<UCharTexture2D*>(img.get()); 
 
-        meq[i] = scale*pix;
+    for (unsigned int i=0; i < w;i++) {
+        for (unsigned int j=0; j < h;j++) {
+             Vector<4,unsigned char> pixel = input->GetPixelValues(i,j);
+             float pix = (0.3*pixel[0] + 0.59*pixel[1] + 0.11*pixel[2]);
+             pix /= 255;
+        
+             data[i*h*3+j]   = 0.0;
+             data[i*h*3+j+1] = 0.0;
+             data[i*h*3+j+2] = scale*pix;
+
+             meq[i*h+j] = scale*pix;
+        }
     }
 
     cudaMalloc((void**)&spinPackets, sizeof(float3) * w * h);        
@@ -150,7 +155,6 @@ void MRIModule::Handle(KeyboardEventArg arg) {
 
         cudaFree(devData);
         free(data);
-
     } 
 }
 
