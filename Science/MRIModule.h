@@ -40,6 +40,7 @@ private:
     bool test;
     float b0;
     float* spinPackets, *eq;
+    unsigned int idx;
 public:
     MRIModule(ITextureResourcePtr img);
     void Handle(ProcessEventArg arg);
@@ -60,6 +61,9 @@ public:
 
     float GetB0() { return b0; }
     void SetB0(float b0) { this->b0 = b0; }
+
+    unsigned int GetIndex() { return idx; }
+    void SetIndex(unsigned int index) { idx = index; }
 
 };
 

@@ -33,15 +33,25 @@ MRIModule::MRIModule(ITextureResourcePtr img)
     , b0(1.0)
     , spinPackets(NULL)
     , eq(NULL)
+    , idx(100)
  {
  }
 
 void MRIModule::Handle(ProcessEventArg arg) {
     if (running) {
+        unsigned int w = img->GetWidth();
+        unsigned int h = img->GetHeight();
         float dt = arg.approx * 0.000001;
 
         logger.info << "running kernel (dt: " << dt << "sec)" << logger.end;
         MRI_step(dt, spinPackets, eq, img->GetWidth(), img->GetHeight(), b0);
+
+        float* data = (float*)malloc(sizeof(float3) * w * h);
+        cudaMemcpy(data, spinPackets, w * h * sizeof(float3), cudaMemcpyDeviceToHost);
+        unsigned int index = idx;
+        Vector<3,float> magnet(data[index*3], data[index*3+1], data[index*3+2]);
+        logger.info << "reading index: " << index << " with value: " << magnet << logger.end;
+        free(data);
     }
 }
 
@@ -64,9 +74,9 @@ void MRIModule::Handle(InitializeEventArg arg) {
              float pix = (0.3*pixel[0] + 0.59*pixel[1] + 0.11*pixel[2]);
              pix /= 255;
         
-             data[i*h*3+j]   = 0.0;
-             data[i*h*3+j+1] = 0.0;
-             data[i*h*3+j+2] = scale*pix;
+             data[(i*h+j)*3]   = 0.0;
+             data[(i*h+j)*3+1] = 0.0;
+             data[(i*h+j)*3+2] = scale*pix;
 
              meq[i*h+j] = scale*pix;
         }
@@ -175,6 +185,7 @@ ValueList MRIModule::Inspection() {
 
     MRI_INSPECTION(bool, Running, "running"); // simulation toggle
     MRI_INSPECTION(float, B0, "B0 (Tesla)");  // B0 field strength
+    MRI_INSPECTION(unsigned int, Index, "test index");  // 
 
     return values;
 }
