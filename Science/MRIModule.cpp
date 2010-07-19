@@ -47,7 +47,7 @@ void MRIModule::Handle(ProcessEventArg arg) {
         unsigned int h = img->GetHeight();
         float timeScale = 0.000001;
         float dt = arg.approx * 0.000001 * timeScale;
-        dt = 0.000001;
+        dt = 0.0001;
         logger.info << "running kernel (dt: " << dt << "sec)" << logger.end;
 
         float3 b = make_float3(0.0,0.0, b0);

@@ -228,22 +228,22 @@ inline __host__ __device__ float3 float4_to_float3(float4 f)
   return val;
 }
 
-inline __device__ float dot( float2 a, float2 b )
+inline __host__ __device__ float dot( float2 a, float2 b )
 {
 	return a.x * b.x + a.y * b.y;
 }
 
-inline __device__ float dot( float3 a, float3 b )
+inline __host__ __device__ float dot( float3 a, float3 b )
 {
 	return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
-inline __device__ float dot( float4 a, float4 b )
+inline __host__ __device__ float dot( float4 a, float4 b )
 {
 	return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 }
 
-inline __device__ float3 cross(float3 a, float3 b)
+inline __host__ __device__ float3 cross(float3 a, float3 b)
 {
     return make_float3(a.y*b.z - b.y*a.z, a.z*b.x - b.z*a.x, a.x*b.y - b.x*a.y);
 }
