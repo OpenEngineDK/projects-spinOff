@@ -4,4 +4,4 @@
 
 void MRI_test(cuFloatComplex* input);
 
-__host__ void MRI_step(float dt, float* spin_packs, float* eq, unsigned int w, unsigned int h, float b0);
+__host__ void MRI_step(float dt, float* spin_packs, float* eq, unsigned int w, unsigned int h, float3 _b);

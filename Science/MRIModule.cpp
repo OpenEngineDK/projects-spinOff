@@ -33,6 +33,7 @@ MRIModule::MRIModule(ITextureResourcePtr img)
                                                      img->GetHeight(), 
                                                      24))
     , running(false)
+    , fid(false)
     , b0(1.0)
     , spinPackets(NULL)
     , eq(NULL)
@@ -44,10 +45,15 @@ void MRIModule::Handle(ProcessEventArg arg) {
     if (running) {
         unsigned int w = img->GetWidth();
         unsigned int h = img->GetHeight();
-        float dt = arg.approx * 0.000001;
-
+        float timeScale = 0.000001;
+        float dt = arg.approx * 0.000001 * timeScale;
+        dt = 0.000001;
         logger.info << "running kernel (dt: " << dt << "sec)" << logger.end;
-        MRI_step(dt, spinPackets, eq, img->GetWidth(), img->GetHeight(), b0);
+
+        float3 b = make_float3(0.0,0.0, b0);
+        if (fid) b += make_float3(.0001,0.0,0.0);
+
+        MRI_step(dt, spinPackets, eq, img->GetWidth(), img->GetHeight(), b);
 
         float* data = (float*)malloc(sizeof(float3) * w * h);
         cudaMemcpy(data, spinPackets, w * h * sizeof(float3), cudaMemcpyDeviceToHost);
@@ -206,6 +212,7 @@ ValueList MRIModule::Inspection() {
 
     MRI_INSPECTION(bool, Running, "running"); // simulation toggle
     MRI_INSPECTION(float, B0, "B0 (Tesla)");  // B0 field strength
+    MRI_INSPECTION(bool, FID, "FID signal");  // B1 toggle
     MRI_INSPECTION(unsigned int, Index, "test index");  // 
     ((RWValue<unsigned int>*)values.back())->properties[MAX] = w*h;
 

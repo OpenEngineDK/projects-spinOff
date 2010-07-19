@@ -37,8 +37,7 @@ private:
     EmptyTextureResourcePtr inverseTexture;
     EmptyTextureResourcePtr testOutputTexture;
 
-    bool running;
-    bool test;
+    bool running, fid, test;
     float b0;
     float* spinPackets, *eq;
     unsigned int idx;
@@ -63,6 +62,9 @@ public:
 
     float GetB0() { return b0; }
     void SetB0(float b0) { this->b0 = b0; }
+
+    bool GetFID() { return fid; }
+    void SetFID(bool enable) { fid = enable; }
 
     unsigned int GetIndex() { return idx; }
     void SetIndex(unsigned int index) { idx = index; }
