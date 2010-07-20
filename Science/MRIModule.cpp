@@ -15,6 +15,7 @@
 #include <Logging/Logger.h>
 #include "../FFT_wrap/FFT.hcu"
 #include "MRI.hcu"
+#include <stdint.h>
 
 namespace OpenEngine {
 namespace Science {
@@ -32,6 +33,7 @@ MRIModule::MRIModule(ITextureResourcePtr img)
     , testOutputTexture(EmptyTextureResource::Create(img->GetWidth(), 
                                                      img->GetHeight(), 
                                                      24))
+    , descaledOutputTexture(EmptyTextureResource::Create(4,4,24))
     , running(false)
     , fid(false)
     , b0(1.0)
@@ -47,7 +49,8 @@ void MRIModule::Handle(ProcessEventArg arg) {
         unsigned int h = img->GetHeight();
         float timeScale = 0.000001;
         float dt = arg.approx * 0.000001 * timeScale;
-        dt = 0.0001;
+        dt = 1e-9;
+        //dt = arg.approx * 1e-13;
         logger.info << "running kernel (dt: " << dt << "sec)" << logger.end;
 
         float3 b = make_float3(0.0,0.0, b0);
@@ -67,6 +70,8 @@ void MRIModule::Handle(ProcessEventArg arg) {
         }
         testOutputTexture->RebindTexture();
 
+        Descale(data,w,h);
+
 
         unsigned int index = idx;
         Vector<3,float> magnet(data[index*3], data[index*3+1], data[index*3+2]);
@@ -74,6 +79,39 @@ void MRIModule::Handle(ProcessEventArg arg) {
 
         free(data);
     }
+}
+
+void MRIModule::Descale(float *data, int w, int h) {
+    
+    int nw=4, nh=4;
+
+    int sx = w/nw;
+    int sy = h/nh;
+
+    for (unsigned int x=0; x<nw; x++)
+        for (unsigned int y=0; y<nh; y++) {
+            float sum_x = 0.0;
+            float sum_y = 0.0;
+            float sum_z = 0.0;
+
+            for (unsigned int dx=0; dx<sx; dx++) 
+                for (unsigned int dy=0; dy<sy; dy++) {
+                    sum_x += data[((dx+sx)*h+(dy+sy))*3+0];
+                    sum_y += data[((dx+sx)*h+(dy+sy))*3+1];
+                    sum_z += data[((dx+sx)*h+(dy+sy))*3+2];
+                }
+            
+            sum_x /= sx*sy;
+            sum_y /= sx*sy;
+            sum_z /= sx*sy;
+
+            (*descaledOutputTexture)(x,y,0) = sum_x*255;
+            (*descaledOutputTexture)(x,y,1) = sum_y*255;
+            (*descaledOutputTexture)(x,y,3) = sum_z*255;
+
+        }
+
+    descaledOutputTexture->RebindTexture();
 }
 
 void MRIModule::Handle(InitializeEventArg arg) {
@@ -110,7 +148,7 @@ void MRIModule::Handle(InitializeEventArg arg) {
     cudaMemcpy(spinPackets, data, w * h * sizeof(float3), cudaMemcpyHostToDevice);
     cudaMemcpy(eq, meq, w * h * sizeof(float), cudaMemcpyHostToDevice);
     free(data);    
-    free(meq);    
+    free(meq);
 }
 
 void MRIModule::Handle(DeinitializeEventArg arg) {
@@ -190,7 +228,10 @@ void MRIModule::Handle(KeyboardEventArg arg) {
 
         cudaFree(devData);
         free(data);
-    } 
+    } else if (arg.sym == KEY_s) {
+        // Step!
+        
+    }
 }
 
 using namespace Utils::Inspection;

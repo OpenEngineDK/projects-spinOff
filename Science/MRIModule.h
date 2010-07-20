@@ -36,11 +36,15 @@ private:
     EmptyTextureResourcePtr outputTexture;
     EmptyTextureResourcePtr inverseTexture;
     EmptyTextureResourcePtr testOutputTexture;
+    EmptyTextureResourcePtr descaledOutputTexture;
+
 
     bool running, fid, test;
     float b0;
     float* spinPackets, *eq;
     unsigned int idx;
+
+    void Descale(float *data, int w, int h);
 public:
     MRIModule(ITextureResourcePtr img);
     void Handle(ProcessEventArg arg);
@@ -51,6 +55,7 @@ public:
     EmptyTextureResourcePtr GetOutputTexture() { return outputTexture; }
     EmptyTextureResourcePtr GetInverseTexture() { return inverseTexture; }
     EmptyTextureResourcePtr GetTestTexture() { return testOutputTexture; }
+    EmptyTextureResourcePtr GetDescaledTexture() { return descaledOutputTexture; }
 
     Utils::Inspection::ValueList Inspection();
 
