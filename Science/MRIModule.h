@@ -16,6 +16,7 @@
 #include <Resources/ITexture2D.h>
 #include <Resources/EmptyTextureResource.h>
 #include <Utils/IInspector.h>
+#include <Renderers/IRenderer.h>
 
 namespace OpenEngine {
 namespace Science {
@@ -30,14 +31,16 @@ using namespace Core;
 using namespace Resources;
 
 class MRIModule : public IModule
-                , public IListener<Devices::KeyboardEventArg> {
+                , public IListener<Devices::KeyboardEventArg>
+                , public IListener<Renderers::RenderingEventArg> {
 private:
     ITextureResourcePtr img;
     EmptyTextureResourcePtr outputTexture;
     EmptyTextureResourcePtr inverseTexture;
     EmptyTextureResourcePtr testOutputTexture;
     EmptyTextureResourcePtr descaledOutputTexture;
-
+    
+    Vector<3,float> descaledVectors[4][4];
 
     bool running, fid, test;
     float b0;
@@ -51,6 +54,7 @@ public:
     void Handle(InitializeEventArg arg);
     void Handle(DeinitializeEventArg arg);
     void Handle(Devices::KeyboardEventArg arg);
+    void Handle(Renderers::RenderingEventArg arg);
     
     EmptyTextureResourcePtr GetOutputTexture() { return outputTexture; }
     EmptyTextureResourcePtr GetInverseTexture() { return inverseTexture; }

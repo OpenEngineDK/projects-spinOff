@@ -28,7 +28,7 @@
 #include <Math/Vector.h>
 
 #include <Utils/SimpleSetup.h>
-#include <Utils/MoveHandler.h>
+#include <Utils/BetterMoveHandler.h>
 #include <Utils/CairoTextTool.h>
 #include <Utils/InspectionBar.h>
 
@@ -197,10 +197,10 @@ struct Wall {
 int main(int argc, char** argv) {
     IEnvironment* env = new SDLEnvironment(1024,768,32);
 
-    //IRenderingView* rv = new MRIRenderingView();
+    // IRenderingView* rv = new MRIRenderingView();
 
     // Create simple setup
-    //SimpleSetup* setup = new SimpleSetup("SpinOff", env, rv);
+    // SimpleSetup* setup = new SimpleSetup("SpinOff", env, rv);
     SimpleSetup* setup = new SimpleSetup("SpinOff", env);
     
     DirectoryManager::AppendPath("./projects/spinOff/report/pics/");
@@ -226,6 +226,8 @@ int main(int argc, char** argv) {
     setup->GetEngine().InitializeEvent().Attach(*mri);
     setup->GetEngine().DeinitializeEvent().Attach(*mri);
     setup->GetKeyboard().KeyEvent().Attach(*mri);
+    setup->GetRenderer().ProcessEvent().Attach(*mri);
+
 
     InspectionBar* mriBar = new InspectionBar("mri", Inspect(mri));
     mriBar->SetIconify(false);
@@ -260,11 +262,11 @@ int main(int argc, char** argv) {
     // setup->GetKeyboard().KeyEvent().Attach(handle);
 
     // Register the handler as a listener on up and down keyboard events.
-    // MoveHandler* move_h = new MoveHandler(*(setup->GetCamera()), setup->GetMouse());
-    // setup->GetKeyboard().KeyEvent().Attach(*move_h);
-    // setup->GetEngine().InitializeEvent().Attach(*move_h);
-    // setup->GetEngine().ProcessEvent().Attach(*move_h);
-    // setup->GetEngine().DeinitializeEvent().Attach(*move_h);
+    BetterMoveHandler* move_h = new BetterMoveHandler(*(setup->GetCamera()), setup->GetMouse());
+    setup->GetKeyboard().KeyEvent().Attach(*move_h);
+    setup->GetEngine().InitializeEvent().Attach(*move_h);
+    setup->GetEngine().ProcessEvent().Attach(*move_h);
+    setup->GetEngine().DeinitializeEvent().Attach(*move_h);
 
     // setup->GetCamera()->SetPosition(Vector<3, float>(20, 20, 0));
     // setup->GetCamera()->LookAt(0, 0, 0);

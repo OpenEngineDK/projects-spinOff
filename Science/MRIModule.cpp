@@ -17,10 +17,13 @@
 #include "MRI.hcu"
 #include <stdint.h>
 
+#include <Geometry/Line.h>
+
 namespace OpenEngine {
 namespace Science {
 
 using namespace Devices;
+using namespace Geometry;
 
 MRIModule::MRIModule(ITextureResourcePtr img) 
     : img(img)
@@ -36,12 +39,27 @@ MRIModule::MRIModule(ITextureResourcePtr img)
     , descaledOutputTexture(EmptyTextureResource::Create(4,4,24))
     , running(false)
     , fid(false)
-    , b0(1.0)
+    , b0(.5)
     , spinPackets(NULL)
     , eq(NULL)
     , idx(100)
  {
  }
+
+void MRIModule::Handle(Renderers::RenderingEventArg arg) {
+    unsigned int w = 4;
+    unsigned int h = 4;
+    float size = 10.0;
+
+    arg.renderer.ApplyViewingVolume(*arg.canvas.GetViewingVolume());
+
+    for (unsigned int i=0;i<w;i++) {
+        for (unsigned int j=0;j<h;j++) {                
+            Vector<3,float> dir = descaledVectors[i][j];
+            arg.renderer.DrawLine(Line(Vector<3,float>(i,j,0.0)*size, Vector<3,float>(i+dir[0], j+dir[1],dir[2])*size), Vector<3,float>(1.0,0.0,0.0), 2.0);
+        }
+    }
+}
 
 void MRIModule::Handle(ProcessEventArg arg) {
     if (running) {
@@ -53,9 +71,12 @@ void MRIModule::Handle(ProcessEventArg arg) {
         //dt = arg.approx * 1e-13;
         logger.info << "running kernel (dt: " << dt << "sec)" << logger.end;
 
-        float3 b = make_float3(0.0,0.0, b0);
-        if (fid) b += make_float3(.0001,0.0,0.0);
-
+        float3 b = make_float3(0.0,0.0,b0);
+        if (fid) {
+            logger.info << "FID" << logger.end;
+            b += make_float3(Math::PI*0.5,0.0,0.0);
+            fid = false;
+        }
         MRI_step(dt, spinPackets, eq, img->GetWidth(), img->GetHeight(), b);
 
         float* data = (float*)malloc(sizeof(float3) * w * h);
@@ -83,10 +104,10 @@ void MRIModule::Handle(ProcessEventArg arg) {
 
 void MRIModule::Descale(float *data, int w, int h) {
     
-    int nw=4, nh=4;
+    unsigned int nw=4, nh=4;
 
-    int sx = w/nw;
-    int sy = h/nh;
+    unsigned int sx = w/nw;
+    unsigned int sy = h/nh;
 
     for (unsigned int x=0; x<nw; x++)
         for (unsigned int y=0; y<nh; y++) {
@@ -108,7 +129,7 @@ void MRIModule::Descale(float *data, int w, int h) {
             (*descaledOutputTexture)(x,y,0) = sum_x*255;
             (*descaledOutputTexture)(x,y,1) = sum_y*255;
             (*descaledOutputTexture)(x,y,3) = sum_z*255;
-
+            descaledVectors[x][y] = Vector<3,float>(sum_x, sum_y, sum_z);
         }
 
     descaledOutputTexture->RebindTexture();
