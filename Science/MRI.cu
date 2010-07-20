@@ -2,6 +2,7 @@
 
 #include "MRI.hcu"
 #include "float_util.hcu"
+#include <stdio.h>
 
 __constant__ float3 b;
 
@@ -101,6 +102,15 @@ __global__ void MRI_step_kernel(float dt, float3* spin_packs, float* eq) {
     spin_packs[idx] = (rotZ(GYROMAGNETIC_RATIO * dt) * relax(dt, T1, T2)) * m;
 }
 
+__host__ void printVec3(float3 f) {
+    printf("[%f %f %f]\n",f.x, f.y, f.z);
+}
+
+__host__ void printMat(mat3x3 m) {
+    printVec3(m.r1);
+    printVec3(m.r2);
+    printVec3(m.r3);
+}
 
 __host__ void MRI_step(float dt, float* spin_packs, float* eq, unsigned int w, unsigned int h, float3 _b) {
     cudaMemcpyToSymbol(b, &_b, sizeof(float3));
