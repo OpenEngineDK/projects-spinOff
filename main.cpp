@@ -207,9 +207,26 @@ int main(int argc, char** argv) {
 
     setup->GetRenderer().SetBackgroundColor(Vector<4,float>(0.0));
 
+
+    BetterMoveHandler* move_h = new BetterMoveHandler(*(setup->GetCamera()), 
+                                                      setup->GetMouse(),
+                                                      true);
+
+    setup->GetEngine().InitializeEvent().Attach(*move_h);
+    setup->GetEngine().ProcessEvent().Attach(*move_h);
+    setup->GetEngine().DeinitializeEvent().Attach(*move_h);
+
+    // setup->GetCamera()->SetPosition(Vector<3, float>(20, 20, 0));
+
     // Ant tweak bar
     AntTweakBar *atb = new AntTweakBar();
     atb->AttachTo(setup->GetRenderer());
+
+    atb->KeyEvent().Attach(*move_h);   
+    atb->MouseButtonEvent().Attach(*move_h);
+    atb->MouseMovedEvent().Attach(*move_h);
+
+
     
     setup->GetKeyboard().KeyEvent().Attach(*atb);
     setup->GetMouse().MouseMovedEvent().Attach(*atb);
@@ -262,11 +279,6 @@ int main(int argc, char** argv) {
     // setup->GetKeyboard().KeyEvent().Attach(handle);
 
     // Register the handler as a listener on up and down keyboard events.
-    BetterMoveHandler* move_h = new BetterMoveHandler(*(setup->GetCamera()), setup->GetMouse());
-    setup->GetKeyboard().KeyEvent().Attach(*move_h);
-    setup->GetEngine().InitializeEvent().Attach(*move_h);
-    setup->GetEngine().ProcessEvent().Attach(*move_h);
-    setup->GetEngine().DeinitializeEvent().Attach(*move_h);
 
     // setup->GetCamera()->SetPosition(Vector<3, float>(20, 20, 0));
     // setup->GetCamera()->LookAt(0, 0, 0);
