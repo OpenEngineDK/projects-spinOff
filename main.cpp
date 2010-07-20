@@ -120,14 +120,31 @@ static TransformationNode* CreateTextureBillboard(ITextureResourcePtr texture,
     return tnode;
 }
 
+struct WallItem {
+    ITextureResourcePtr texture;
+    string title;
+    Vector<2,unsigned int> scale;
+
+    WallItem() {}
+
+    WallItem(ITextureResourcePtr t, 
+             string s)
+        : texture(t)
+        , title(s)
+        , scale(Vector<2,unsigned int>(1,1)) {
+        
+    }
+};
+
 struct Wall {
-    pair<ITextureResourcePtr,string> tex[12];
+    WallItem tex[12];
     TextureLoader& loader;
 
-    Wall(TextureLoader& l) : loader(l) {        
+    Wall(TextureLoader& l) : loader(l) {
+        
     }
 
-    pair<ITextureResourcePtr,string>& operator()(int x, int y) {
+    WallItem& operator()(int x, int y) {
         return tex[x*3+y];
     }
     ISceneNode* MakeScene() {
@@ -136,19 +153,22 @@ struct Wall {
         
         for (int x=0;x<4;x++) {
             for (int y=0;y<3;y++) {
-                pair<ITextureResourcePtr,string> itm = (*this)(x,y);
-                ITextureResourcePtr t = itm.first;
+                WallItem itm = (*this)(x,y);
+                ITextureResourcePtr t = itm.texture;
                 if (t) {
+                    Vector<2,unsigned int> scale = itm.scale;
                     loader.Load(t,TextureLoader::RELOAD_QUEUED);
                     TransformationNode* node = CreateTextureBillboard(t,0.05);
-                    node->SetScale(Vector<3,float>(1.0,-1.0,1.0));
+                    node->SetScale(Vector<3,float>( 1.0 * scale[0],
+                                                   -1.0 * scale[1],
+                                                    1.0));
                     node->Move(x*35-52,y*25-25,0);
 
                     CairoResourcePtr textRes = CairoResource::Create(128,32);
                     textRes->Load();
 
                     ostringstream out;
-                    out << "(" << x << "," << y << ") " << itm.second;
+                    out << "(" << x << "," << y << ") " << itm.title;
 
                     textTool.DrawText(out.str(), textRes);
 
@@ -207,16 +227,20 @@ int main(int argc, char** argv) {
     setup->GetEngine().DeinitializeEvent().Attach(*mri);
     setup->GetKeyboard().KeyEvent().Attach(*mri);
 
-    atb->AddBar(new InspectionBar("mri", Inspect(mri)));
+    InspectionBar* mriBar = new InspectionBar("mri", Inspect(mri));
+    mriBar->SetIconify(false);
+    mriBar->SetPosition(Vector<2,float>(800,100));
+    atb->AddBar(mriBar);
 
     // Wall
     Wall wall(setup->GetTextureLoader());
 
-    wall(0,0) = make_pair<>(girl, "Girl");
-    wall(1,0) = make_pair<>(mri->GetOutputTexture(), "output");
-    wall(2,0) = make_pair<>(mri->GetInverseTexture(), "inverse");
-    wall(0,1) = make_pair<>(mri->GetTestTexture(), "test output");
-    
+    wall(0,0) = WallItem(girl, "Girl");
+    wall(1,0) = WallItem(mri->GetOutputTexture(), "output");
+    wall(2,0) = WallItem(mri->GetInverseTexture(), "inverse");
+    wall(0,1) = WallItem(mri->GetTestTexture(), "test output");
+    wall(1,1) = WallItem(mri->GetDescaledTexture(), "descaled");
+    wall(1,1).scale = Vector<2,unsigned int>(10,10);
 
     ISceneNode *wallNode = wall.MakeScene();
     setup->SetScene(*wallNode);
