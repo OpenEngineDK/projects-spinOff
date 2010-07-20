@@ -12,6 +12,7 @@ const float GYROMAGNETIC_RATIO = 42.58e6; // hertz pr tesla
 const float BOLTZMANN_CONSTANT = 1.3805e-23; // Joule / Kelvin
 const float PLANCK_CONSTANT = 6.626e-34; // Joule * seconds
 
+
 struct mat3x3 {
     float3 r1;
     float3 r2;
@@ -93,14 +94,58 @@ void MRI_test(cuFloatComplex* input) {
 
 
 
-__global__ void MRI_step_kernel(float dt, float3* spin_packs, float* eq) {
+__global__ void MRI_step_kernel(float dt, float3* spin_packs, float* eq, unsigned int size) {
     unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (idx >= size)
+        return;
+        
 
     float3 m = spin_packs[idx];
     //spin_packs[idx] += dt*(cross(GYROMAGNETIC_RATIO * m, b) - make_float3(m.x / T2, m.y / T2, 0.0)  - make_float3(0.0, 0.0, (m.z - eq[idx])/T1));
     
-    spin_packs[idx] = (rotZ(GYROMAGNETIC_RATIO * dt) * relax(dt, T1, T2)) * m;
+    //spin_packs[idx] = (rotZ(GYROMAGNETIC_RATIO * dt) * relax(dt, T1, T2)) * m;
+    m = relax(dt,T1,T2) * m;
+    spin_packs[idx] = m;
 }
+
+__global__ void MRI_step_kernel_anal(float t, float3* spin_packs, float* eq, unsigned int size) {
+    unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (idx >= size)
+        return;
+        
+    float3 m = spin_packs[idx];
+
+    float larmorFrequency = GYROMAGNETIC_RATIO;
+
+    float2 e1;
+    e1.x = cos(larmorFrequency * t);
+    e1.y = sin(larmorFrequency * t);
+    float2 e2;
+    e2.x = -sin(larmorFrequency * t);
+    e2.y = cos(larmorFrequency * t);
+
+
+    float T1exp = exp(-t/T1);
+    float T2exp = exp(-t/T2);
+
+
+    float3 localNetMagnetization;
+
+    localNetMagnetization.x = T2exp * eq[0];
+    localNetMagnetization.y = T2exp * eq[1];
+    localNetMagnetization.z = eq[2] * T1exp + 40 * 1 * (1-T1exp);
+
+    m.x = localNetMagnetization.x * e1.x + localNetMagnetization.y * e2.x;
+    m.y = localNetMagnetization.x * e1.y + localNetMagnetization.y * e2.y;
+    m.z = localNetMagnetization.z;
+
+
+    spin_packs[idx] = m;
+}
+
+
 
 __host__ void printVec3(float3 f) {
     printf("[%f %f %f]\n",f.x, f.y, f.z);
@@ -112,13 +157,34 @@ __host__ void printMat(mat3x3 m) {
     printVec3(m.r3);
 }
 
-__host__ void MRI_step(float dt, float* spin_packs, float* eq, unsigned int w, unsigned int h, float3 _b) {
+float thetime = 0.0;
+
+__host__ void MRI_step(float dt, float* spin_packs, 
+                       float* eq, unsigned int w, unsigned int h, float3 _b) {
     cudaMemcpyToSymbol(b, &_b, sizeof(float3));
 
 	dim3 blockDim(512,1,1);
 	dim3 gridDim(int(((double)(w*h))/(double)blockDim.x),1,1);
-    MRI_step_kernel<<< gridDim, blockDim >>>(dt, (float3*)spin_packs, eq);
+    thetime += dt;
+    MRI_step_kernel_anal<<< gridDim, blockDim >>>(thetime, (float3*)spin_packs, eq, w*h);
+    //    MRI_step_kernel<<< gridDim, blockDim >>>(dt, (float3*)spin_packs, eq, w*h);
+    
+   
+
+    
+
+    float3 v = make_float3(0.8, 0.1, 0.1);
+    printf("v = ");
+    printVec3(v);
+
+    printf("relax = ");
+
+    printMat(relax(dt, T1, T2));
+
+    float3 v2 = relax(dt, T1, T2) * v;
+
+    printf(" v * relax = ");
+
+    printVec3(v2);
+
 }
-
-
-
