@@ -44,7 +44,7 @@ private:
 
     bool running, fid, test;
     float b0;
-    float* spinPackets, *eq;
+    float* lab_spins, *ref_spins, *eq;
     unsigned int idx;
 
     void Descale(float *data, int w, int h);

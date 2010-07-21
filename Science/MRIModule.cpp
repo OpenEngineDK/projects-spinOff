@@ -40,23 +40,26 @@ MRIModule::MRIModule(ITextureResourcePtr img)
     , running(false)
     , fid(false)
     , b0(.5)
-    , spinPackets(NULL)
+    , lab_spins(NULL)
+    , ref_spins(NULL)
     , eq(NULL)
-    , idx(100)
+    , idx(99747)
  {
  }
 
 void MRIModule::Handle(Renderers::RenderingEventArg arg) {
     unsigned int w = 4;
     unsigned int h = 4;
-    float size = 10.0;
+    float size = 5.0;
+    float space = 2.0;
 
     arg.renderer.ApplyViewingVolume(*arg.canvas.GetViewingVolume());
 
     for (unsigned int i=0;i<w;i++) {
         for (unsigned int j=0;j<h;j++) {                
-            Vector<3,float> dir = descaledVectors[i][j];
-            arg.renderer.DrawLine(Line(Vector<3,float>(i,j,0.0)*size, Vector<3,float>(i+dir[0], j+dir[1],dir[2])*size), Vector<3,float>(1.0,0.0,0.0), 2.0);
+            Vector<3,float> dir = descaledVectors[i][j]*size;
+            //logger.info << "lvec: " << dir.GetLength() << logger.end;
+            arg.renderer.DrawLine(Line(Vector<3,float>(i,j,0.0)*space, Vector<3,float>(i*space+dir[0], j*space+dir[1],dir[2])), Vector<3,float>(1.0,0.0,0.0), 2.0);
         }
     }
 }
@@ -67,7 +70,7 @@ void MRIModule::Handle(ProcessEventArg arg) {
         unsigned int h = img->GetHeight();
         float timeScale = 0.000001;
         float dt = arg.approx * 0.000001 * timeScale;
-        dt = 1e-9;
+        dt = 1e-8;
         //dt = arg.approx * 1e-13;
         logger.info << "running kernel (dt: " << dt << "sec)" << logger.end;
 
@@ -77,10 +80,10 @@ void MRIModule::Handle(ProcessEventArg arg) {
             b += make_float3(Math::PI*0.5,0.0,0.0);
             fid = false;
         }
-        MRI_step(dt, spinPackets, eq, img->GetWidth(), img->GetHeight(), b);
+        MRI_step(dt, (float3*)lab_spins, (float3*)ref_spins, eq, img->GetWidth(), img->GetHeight(), b);
 
         float* data = (float*)malloc(sizeof(float3) * w * h);
-        cudaMemcpy(data, spinPackets, w * h * sizeof(float3), cudaMemcpyDeviceToHost);
+        cudaMemcpy(data, lab_spins, w * h * sizeof(float3), cudaMemcpyDeviceToHost);
 
         for (unsigned int i=0;i<w;i++) {
             for (unsigned int j=0;j<h;j++) {                
@@ -144,7 +147,7 @@ void MRIModule::Handle(InitializeEventArg arg) {
 
     logger.info << "max index: " << w*h << logger.end;
 
-    float* data = (float*)malloc(sizeof(float3) * w * h);
+    float3* data = (float3*)malloc(sizeof(float3) * w * h);
     float* meq  = (float*)malloc(sizeof(float) * w * h);
     float scale = 1.0;
 
@@ -156,17 +159,19 @@ void MRIModule::Handle(InitializeEventArg arg) {
              float pix = (0.3*pixel[0] + 0.59*pixel[1] + 0.11*pixel[2]);
              pix /= 255;
         
-             data[(i*h+j)*3]   = 0.0;
-             data[(i*h+j)*3+1] = 0.0;
-             data[(i*h+j)*3+2] = scale*pix;
+             data[(i*h+j)] = make_float3(0.0, scale*pix, 0.0);
+             // data[(i*h+j)*3+1] = scale*pix;
+             // data[(i*h+j)*3+2] = 0.0;
 
              meq[i*h+j] = scale*pix;
         }
     }
 
-    cudaMalloc((void**)&spinPackets, sizeof(float3) * w * h);        
+    cudaMalloc((void**)&lab_spins, sizeof(float3) * w * h);        
+    cudaMalloc((void**)&ref_spins, sizeof(float3) * w * h);        
     cudaMalloc((void**)&eq, sizeof(float) * w * h);        
-    cudaMemcpy(spinPackets, data, w * h * sizeof(float3), cudaMemcpyHostToDevice);
+    cudaMemcpy(lab_spins, data, w * h * sizeof(float3), cudaMemcpyHostToDevice);
+    cudaMemcpy(ref_spins, data, w * h * sizeof(float3), cudaMemcpyHostToDevice);
     cudaMemcpy(eq, meq, w * h * sizeof(float), cudaMemcpyHostToDevice);
     free(data);    
     free(meq);

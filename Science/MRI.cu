@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 __constant__ float3 b;
+__constant__ float flip;
 
 const float T1 = 1e-5; // spin lattice in seconds.
 const float T2 = 1e-6; // spin spin in seconds.
@@ -65,13 +66,11 @@ __host__ __device__ float3 operator*(mat3x3 m, float3 v) {
                        dot(m.r3, v));
 }
 
-
 __host__ __device__ mat3x3 rotX(float angle) {
     return make_mat3x3(make_float3(1.0,        0.0, 0.0       ),
                        make_float3(0.0, cos(angle), sin(angle)),
                        make_float3(0.0,-sin(angle), cos(angle))
                        );
-                       
 }
 
 __host__ __device__ mat3x3 rotZ(float angle) {
@@ -81,32 +80,41 @@ __host__ __device__ mat3x3 rotZ(float angle) {
 }
 
 __host__ __device__ mat3x3 relax(float dt, float t1, float t2) {
-    return make_mat3x3(make_float3(exp(-dt/t2),         0.0,            0.0),
-                       make_float3(        0.0, exp(-dt/t2),            0.0),
-                       make_float3(        0.0,         0.0, 1.0-exp(-dt/t1))
+    return make_mat3x3(make_float3(1.0/exp(dt/t2),         0.0,            0.0),
+                       make_float3(        0.0, 1.0/exp(dt/t2),            0.0),
+                       make_float3(        0.0,         0.0, 1.0-(1.0/exp(dt/t1)))
                        );
 }
 
+__host__ __device__ mat3x3 rf(float phaseAngle, float flipAngle) {
+    return rotZ(phaseAngle) * rotX(flipAngle) * rotZ(-phaseAngle);
+}
 
 void MRI_test(cuFloatComplex* input) {
         
 }
 
-
-
-__global__ void MRI_step_kernel(float dt, float3* spin_packs, float* eq, unsigned int size) {
+__global__ void MRI_step_kernel(float dt, float3* lab_spins, float3* ref_spins, float* eq, unsigned int size, float thetime) {
     unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (idx >= size)
         return;
-        
 
-    float3 m = spin_packs[idx];
-    //spin_packs[idx] += dt*(cross(GYROMAGNETIC_RATIO * m, b) - make_float3(m.x / T2, m.y / T2, 0.0)  - make_float3(0.0, 0.0, (m.z - eq[idx])/T1));
+
+    float omega = GYROMAGNETIC_RATIO * b.z;
+    float3 m = ref_spins[idx];
+
+    m += dt*make_float3(-m.x/T2, -m.y/T2, (m.z - eq[idx])/T1);
+
+    ref_spins[idx] = m;
+    lab_spins[idx] = make_float3(m.x * cos(omega * thetime) - m.y * sin(omega*thetime), m.x * sin(omega * thetime) + m.y * cos(omega*thetime),  m.z);
+    // lab_spins[idx] += dt * (cross(GYROMAGNETIC_RATIO * m, b) - make_float3(m.x / T2, m.y / T2, 0.0) - make_float3(0.0, 0.0, (eq[idx] - m.z) / T1));
     
-    //spin_packs[idx] = (rotZ(GYROMAGNETIC_RATIO * dt) * relax(dt, T1, T2)) * m;
-    m = relax(dt,T1,T2) * m;
-    spin_packs[idx] = m;
+    //lab_spins[idx] = (rotZ(GYROMAGNETIC_RATIO * dt) * relax(dt, T1, T2)) * m;
+    // m = relax(dt,T1,T2) * m;
+    //lab_spins[idx] = relax(dt,T1,T2) * m;
+    //lab_spins[idx] = /*(rotZ(GYROMAGNETIC_RATIO * 0.0 * dt) * relax(dt, T1, T2) * rf(0.0, b.x))*/  rotX(b.x) * m;
+    //lab_spins[idx] = /*rotZ(GYROMAGNETIC_RATIO * b.z * dt) **/ (relax(dt, T1, T2) * (rotX(b.x) * m));
 }
 
 __global__ void MRI_step_kernel_anal(float t, float3* spin_packs, float* eq, unsigned int size) {
@@ -159,19 +167,15 @@ __host__ void printMat(mat3x3 m) {
 
 float thetime = 0.0;
 
-__host__ void MRI_step(float dt, float* spin_packs, 
+__host__ void MRI_step(float dt, float3* lab_spins, float3* ref_spins,
                        float* eq, unsigned int w, unsigned int h, float3 _b) {
     cudaMemcpyToSymbol(b, &_b, sizeof(float3));
 
 	dim3 blockDim(512,1,1);
 	dim3 gridDim(int(((double)(w*h))/(double)blockDim.x),1,1);
     thetime += dt;
-    MRI_step_kernel_anal<<< gridDim, blockDim >>>(thetime, (float3*)spin_packs, eq, w*h);
-    //    MRI_step_kernel<<< gridDim, blockDim >>>(dt, (float3*)spin_packs, eq, w*h);
-    
-   
-
-    
+    // MRI_step_kernel_anal<<< gridDim, blockDim >>>(thetime, (float3*)spin_packs, eq, w*h);
+    MRI_step_kernel<<< gridDim, blockDim >>>(dt, lab_spins, ref_spins, eq, w*h, thetime);
 
     float3 v = make_float3(0.8, 0.1, 0.1);
     printf("v = ");
@@ -186,5 +190,4 @@ __host__ void MRI_step(float dt, float* spin_packs,
     printf(" v * relax = ");
 
     printVec3(v2);
-
 }
