@@ -49,7 +49,7 @@ MRIModule::MRIModule(ITextureResourcePtr img)
     , ref_spins(NULL)
     , props(NULL)
     , idx(99747)
-    , theDT(1e-8)
+    , theDT(5e-8)
     , sigIdx(0,0)
     , signalData((cuFloatComplex*)malloc(sizeof(cuFloatComplex)*100*100))
  {
@@ -86,14 +86,40 @@ void MRIModule::Handle(ProcessEventArg arg) {
         float samplingRate = 1.0/dt;
         gx = samplingRate / GYROMAGNETIC_RATIO * fov;
 
-        float3 b = make_float3(0.0,0.0,b0);
-        if (fid) {
-            logger.info << "FID" << logger.end;
-            b += make_float3(Math::PI*0.5,0.0,0.0);
-            fid = false;
-        }
 
-        float3 signal = MRI_step(dt, (float3*)lab_spins, (float3*)ref_spins, props, img->GetWidth(), img->GetHeight(), b, gx, gy);
+        for (int i=0;i<4;i++) {
+            float3 b = make_float3(0.0,0.0,b0);
+            if (fid) {
+                logger.info << "FID" << logger.end;
+                b += make_float3(Math::PI*0.5,0.0,0.0);
+                fid = false;
+            }
+
+            float3 signal = MRI_step(dt, (float3*)lab_spins, (float3*)ref_spins,
+                                     props, img->GetWidth(), img->GetHeight(), b, gx, gy);
+
+            float signalScale = 0.1;
+            if (sigIdx[1] < 100) {
+                // signal
+                (*signalTexture)(sigIdx[0],sigIdx[1],0) = signalScale*signal.x*255;
+                (*signalTexture)(sigIdx[0],sigIdx[1],1) = signalScale*signal.y*255;
+                (*signalTexture)(sigIdx[0],sigIdx[1],2) = 0; //signal.z*255;
+            
+                signalData[sigIdx[1]*100+sigIdx[0]] 
+                    = make_cuFloatComplex(signal.x, signal.y);
+
+                sigIdx[0]++;                
+                if (sigIdx[0] == 100) {
+                    sigIdx[0] = 0;
+                    sigIdx[1]++;                    
+                    fid = true;
+                }
+            }
+        }
+        signalTexture->RebindTexture();
+
+
+
 
         float* data = (float*)malloc(sizeof(float3) * w * h);
         cudaMemcpy(data, lab_spins, w * h * sizeof(float3), cudaMemcpyDeviceToHost);
@@ -109,30 +135,8 @@ void MRIModule::Handle(ProcessEventArg arg) {
 
         Descale(data,w,h);
 
-
-        if (sigIdx[1] < 100) {
-            // signal
-            if (sigIdx[0] == 100) {
-                sigIdx[0] = 0;
-                sigIdx[1]++;
-            }            
-            (*signalTexture)(sigIdx[0],sigIdx[1],0) = signal.x*255;
-            (*signalTexture)(sigIdx[0],sigIdx[1],1) = signal.y*255;
-            (*signalTexture)(sigIdx[0],sigIdx[1],2) = signal.z*255;
-            
-            signalData[sigIdx[1]*100+sigIdx[0]] 
-                = make_cuFloatComplex(signal.x, signal.y);
-
-            sigIdx[0]++;
-            if (sigIdx[0] == 100) {
-                
-                fid = true;
-            }
-            signalTexture->RebindTexture();
-        }
-
-        unsigned int index = idx;
-        Vector<3,float> magnet(data[index*3], data[index*3+1], data[index*3+2]);
+        // unsigned int index = idx;
+        // Vector<3,float> magnet(data[index*3], data[index*3+1], data[index*3+2]);
         // logger.info << "reading index: " << index << " with value: " << magnet << logger.end;
 
         free(data);
@@ -283,7 +287,7 @@ void MRIModule::Handle(KeyboardEventArg arg) {
         outputTexture->RebindTexture();
 
         // k 2 i
-    cudaThreadSynchronize();
+        cudaThreadSynchronize();
 
         K2I_ALL(devData, dims);
 
