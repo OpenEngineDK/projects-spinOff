@@ -10,8 +10,8 @@ __constant__ float flip;
 const float T1 = 1e-5; // spin lattice in seconds.
 const float T2 = 1e-6; // spin spin in seconds.
 const float GYROMAGNETIC_RATIO = 42.58e6; // hertz pr tesla
-const float BOLTZMANN_CONSTANT = 1.3805e-23; // Joule / Kelvin
-const float PLANCK_CONSTANT = 6.626e-34; // Joule * seconds
+// const float BOLTZMANN_CONSTANT = 1.3805e-23; // Joule / Kelvin
+// const float PLANCK_CONSTANT = 6.626e-34; // Joule * seconds
 
 
 struct mat3x3 {
@@ -103,8 +103,11 @@ __global__ void MRI_step_kernel(float dt, float3* lab_spins, float3* ref_spins, 
 
     float omega = GYROMAGNETIC_RATIO * b.z;
     float3 m = ref_spins[idx];
+    float dtt1 = dt/T1;
+    float dtt2 = dt/T2;
+    
 
-    m += dt*make_float3(-m.x/T2, -m.y/T2, (m.z - eq[idx])/T1);
+    m += make_float3(-m.x*dtt2, -m.y*dtt2, (eq[idx]-m.z)*dtt1);
 
     ref_spins[idx] = m;
     lab_spins[idx] = make_float3(m.x * cos(omega * thetime) - m.y * sin(omega*thetime), m.x * sin(omega * thetime) + m.y * cos(omega*thetime),  m.z);

@@ -70,7 +70,7 @@ void MRIModule::Handle(ProcessEventArg arg) {
         unsigned int h = img->GetHeight();
         float timeScale = 0.000001;
         float dt = arg.approx * 0.000001 * timeScale;
-        dt = 1e-8;
+        dt = 1e-7;
         //dt = arg.approx * 1e-13;
         logger.info << "running kernel (dt: " << dt << "sec)" << logger.end;
 

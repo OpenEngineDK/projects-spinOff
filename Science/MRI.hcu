@@ -2,6 +2,12 @@
 
 #include <cuComplex.h>
 
+struct SpinProperty {
+    float eq;
+    float t1;
+    float t2;
+};
+
 void MRI_test(cuFloatComplex* input);
 
 __host__ void MRI_step(float dt, float3* lab_spins, float3* ref_spins, float* eq, unsigned int w, unsigned int h, float3 _b);
