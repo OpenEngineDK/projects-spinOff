@@ -44,7 +44,7 @@ private:
     Vector<3,float> descaledVectors[4][4];
 
     bool running, fid, test;
-    float b0;
+    float b0, gx, gy;
     float *lab_spins, *ref_spins;
     SpinProperty* props;
     unsigned int idx;
@@ -73,6 +73,12 @@ public:
 
     float GetB0() { return b0; }
     void SetB0(float b0) { this->b0 = b0; }
+
+    float GetGx() { return gx; }
+    void SetGx(float gx) { this->gx = gx; }
+
+    float GetGy() { return gy; }
+    void SetGy(float gy) { this->gy = gy; }
 
     bool GetFID() { return fid; }
     void SetFID(bool enable) { fid = enable; }

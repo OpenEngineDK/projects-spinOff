@@ -39,6 +39,8 @@ MRIModule::MRIModule(ITextureResourcePtr img)
     , running(false)
     , fid(false)
     , b0(.5)
+    , gx(0.0)
+    , gy(0.0)
     , lab_spins(NULL)
     , ref_spins(NULL)
     , props(NULL)
@@ -69,7 +71,7 @@ void MRIModule::Handle(ProcessEventArg arg) {
         unsigned int h = img->GetHeight();
         float timeScale = 0.000001;
         float dt = arg.approx * 0.000001 * timeScale;
-        dt = 1e-8;
+        dt = 1e-7;
         //dt = arg.approx * 1e-13;
         logger.info << "running kernel (dt: " << dt << "sec)" << logger.end;
 
@@ -79,7 +81,7 @@ void MRIModule::Handle(ProcessEventArg arg) {
             b += make_float3(Math::PI*0.5,0.0,0.0);
             fid = false;
         }
-        MRI_step(dt, (float3*)lab_spins, (float3*)ref_spins, props, img->GetWidth(), img->GetHeight(), b);
+        MRI_step(dt, (float3*)lab_spins, (float3*)ref_spins, props, img->GetWidth(), img->GetHeight(), b, gx, gy);
 
         float* data = (float*)malloc(sizeof(float3) * w * h);
         cudaMemcpy(data, lab_spins, w * h * sizeof(float3), cudaMemcpyDeviceToHost);
@@ -94,7 +96,6 @@ void MRIModule::Handle(ProcessEventArg arg) {
         testOutputTexture->RebindTexture();
 
         Descale(data,w,h);
-
 
         unsigned int index = idx;
         Vector<3,float> magnet(data[index*3], data[index*3+1], data[index*3+2]);
@@ -281,6 +282,8 @@ ValueList MRIModule::Inspection() {
 
     MRI_INSPECTION(bool, Running, "running"); // simulation toggle
     MRI_INSPECTION(float, B0, "B0 (Tesla)");  // B0 field strength
+    MRI_INSPECTION(float, Gx, "Gradient X");  // Gradient x component field strength
+    MRI_INSPECTION(float, Gy, "Gradient y");  // Gradient y component field strength
     MRI_INSPECTION(bool, FID, "FID signal");  // B1 toggle
     MRI_INSPECTION(unsigned int, Index, "test index");  // 
     ((RWValue<unsigned int>*)values.back())->properties[MAX] = w*h;
