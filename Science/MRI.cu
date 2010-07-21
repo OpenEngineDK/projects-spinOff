@@ -299,6 +299,8 @@ __host__ float3 MRI_step(float dt, float3* lab_spins, float3* ref_spins,
             gpu_result += c_odata[i];
         }
 
+    cudaFree(odata);
+
     //gpu_result /= w*h;
 
     /* printf("reduced = "); */
