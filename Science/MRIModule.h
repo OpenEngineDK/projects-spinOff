@@ -17,6 +17,7 @@
 #include <Resources/EmptyTextureResource.h>
 #include <Utils/IInspector.h>
 #include <Renderers/IRenderer.h>
+#include "MRI.hcu"
 
 namespace OpenEngine {
 namespace Science {
@@ -44,7 +45,8 @@ private:
 
     bool running, fid, test;
     float b0;
-    float* lab_spins, *ref_spins, *eq;
+    float *lab_spins, *ref_spins;
+    SpinProperty* props;
     unsigned int idx;
 
     void Descale(float *data, int w, int h);

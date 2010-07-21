@@ -94,7 +94,7 @@ void MRI_test(cuFloatComplex* input) {
         
 }
 
-__global__ void MRI_step_kernel(float dt, float3* lab_spins, float3* ref_spins, float* eq, unsigned int size, float thetime) {
+__global__ void MRI_step_kernel(float dt, float3* lab_spins, float3* ref_spins, SpinProperty* props, unsigned int size, float thetime) {
     unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (idx >= size)
@@ -103,14 +103,15 @@ __global__ void MRI_step_kernel(float dt, float3* lab_spins, float3* ref_spins, 
 
     float omega = GYROMAGNETIC_RATIO * b.z;
     float3 m = ref_spins[idx];
-    float dtt1 = dt/T1;
-    float dtt2 = dt/T2;
+    float dtt1 = dt/props[idx].t1;
+    float dtt2 = dt/props[idx].t2;
     
-
-    m += make_float3(-m.x*dtt2, -m.y*dtt2, (eq[idx]-m.z)*dtt1);
-
+    m += make_float3(-m.x*dtt2, -m.y*dtt2, (props[idx].eq-m.z)*dtt1);
+    m = rotX(b.x)*m;
     ref_spins[idx] = m;
     lab_spins[idx] = make_float3(m.x * cos(omega * thetime) - m.y * sin(omega*thetime), m.x * sin(omega * thetime) + m.y * cos(omega*thetime),  m.z);
+
+
     // lab_spins[idx] += dt * (cross(GYROMAGNETIC_RATIO * m, b) - make_float3(m.x / T2, m.y / T2, 0.0) - make_float3(0.0, 0.0, (eq[idx] - m.z) / T1));
     
     //lab_spins[idx] = (rotZ(GYROMAGNETIC_RATIO * dt) * relax(dt, T1, T2)) * m;
@@ -171,14 +172,14 @@ __host__ void printMat(mat3x3 m) {
 float thetime = 0.0;
 
 __host__ void MRI_step(float dt, float3* lab_spins, float3* ref_spins,
-                       float* eq, unsigned int w, unsigned int h, float3 _b) {
+                       SpinProperty* props, unsigned int w, unsigned int h, float3 _b) {
     cudaMemcpyToSymbol(b, &_b, sizeof(float3));
 
 	dim3 blockDim(512,1,1);
 	dim3 gridDim(int(((double)(w*h))/(double)blockDim.x),1,1);
     thetime += dt;
     // MRI_step_kernel_anal<<< gridDim, blockDim >>>(thetime, (float3*)spin_packs, eq, w*h);
-    MRI_step_kernel<<< gridDim, blockDim >>>(dt, lab_spins, ref_spins, eq, w*h, thetime);
+    MRI_step_kernel<<< gridDim, blockDim >>>(dt, lab_spins, ref_spins, props, w*h, thetime);
 
     float3 v = make_float3(0.8, 0.1, 0.1);
     printf("v = ");

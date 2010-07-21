@@ -14,7 +14,6 @@
 
 #include <Logging/Logger.h>
 #include "../FFT_wrap/FFT.hcu"
-#include "MRI.hcu"
 #include <stdint.h>
 
 #include <Geometry/Line.h>
@@ -42,7 +41,7 @@ MRIModule::MRIModule(ITextureResourcePtr img)
     , b0(.5)
     , lab_spins(NULL)
     , ref_spins(NULL)
-    , eq(NULL)
+    , props(NULL)
     , idx(99747)
  {
  }
@@ -80,7 +79,7 @@ void MRIModule::Handle(ProcessEventArg arg) {
             b += make_float3(Math::PI*0.5,0.0,0.0);
             fid = false;
         }
-        MRI_step(dt, (float3*)lab_spins, (float3*)ref_spins, eq, img->GetWidth(), img->GetHeight(), b);
+        MRI_step(dt, (float3*)lab_spins, (float3*)ref_spins, props, img->GetWidth(), img->GetHeight(), b);
 
         float* data = (float*)malloc(sizeof(float3) * w * h);
         cudaMemcpy(data, lab_spins, w * h * sizeof(float3), cudaMemcpyDeviceToHost);
@@ -145,10 +144,10 @@ void MRIModule::Handle(InitializeEventArg arg) {
     unsigned int w = img->GetWidth();
     unsigned int h = img->GetHeight();
 
-    logger.info << "max index: " << w*h << logger.end;
+    // logger.info << "max index: " << w*h << logger.end;
 
     float3* data = (float3*)malloc(sizeof(float3) * w * h);
-    float* meq  = (float*)malloc(sizeof(float) * w * h);
+    SpinProperty* ps = (SpinProperty*)malloc(sizeof(SpinProperty) * w * h);
     float scale = 1.0;
 
     UCharTexture2D* input = dynamic_cast<UCharTexture2D*>(img.get()); 
@@ -162,19 +161,22 @@ void MRIModule::Handle(InitializeEventArg arg) {
              data[(i*h+j)] = make_float3(0.0, scale*pix, 0.0);
              // data[(i*h+j)*3+1] = scale*pix;
              // data[(i*h+j)*3+2] = 0.0;
-
-             meq[i*h+j] = scale*pix;
+             SpinProperty p;
+             p.eq = scale*pix;
+             p.t1 = (1e-5)*pix;
+             p.t2 = (1e-6)*pix;
+             ps[i*h+j] = p;
         }
     }
 
     cudaMalloc((void**)&lab_spins, sizeof(float3) * w * h);        
     cudaMalloc((void**)&ref_spins, sizeof(float3) * w * h);        
-    cudaMalloc((void**)&eq, sizeof(float) * w * h);        
+    cudaMalloc((void**)&props, sizeof(SpinProperty) * w * h);        
     cudaMemcpy(lab_spins, data, w * h * sizeof(float3), cudaMemcpyHostToDevice);
     cudaMemcpy(ref_spins, data, w * h * sizeof(float3), cudaMemcpyHostToDevice);
-    cudaMemcpy(eq, meq, w * h * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(props, ps, w * h * sizeof(SpinProperty), cudaMemcpyHostToDevice);
     free(data);    
-    free(meq);
+    free(ps);
 }
 
 void MRIModule::Handle(DeinitializeEventArg arg) {
