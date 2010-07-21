@@ -28,6 +28,9 @@ namespace Science {
  * @class MRIModule MRIModule.h ons/SpinOff/Science/MRIModule.h
  */
 
+#define DESCALE_W 7
+#define DESCALE_H DESCALE_W
+
 using namespace Core;
 using namespace Resources;
 
@@ -40,14 +43,29 @@ private:
     EmptyTextureResourcePtr inverseTexture;
     EmptyTextureResourcePtr testOutputTexture;
     EmptyTextureResourcePtr descaledOutputTexture;
+    EmptyTextureResourcePtr signalTexture;
+    EmptyTextureResourcePtr signalOutputTexture;
+    EmptyTextureResourcePtr signalOutput2Texture;
     
-    Vector<3,float> descaledVectors[4][4];
+
+  
+
+    Vector<3,float> descaledVectors[DESCALE_W][DESCALE_H];
+
+
+    
 
     bool running, fid, test;
     float b0, gx, gy;
     float *lab_spins, *ref_spins;
     SpinProperty* props;
     unsigned int idx;
+
+    float theDT;
+
+    Vector<2,int> sigIdx;
+    
+    cuFloatComplex *signalData;
 
     void Descale(float *data, int w, int h);
 public:
@@ -62,6 +80,9 @@ public:
     EmptyTextureResourcePtr GetInverseTexture() { return inverseTexture; }
     EmptyTextureResourcePtr GetTestTexture() { return testOutputTexture; }
     EmptyTextureResourcePtr GetDescaledTexture() { return descaledOutputTexture; }
+    EmptyTextureResourcePtr GetSignalTexture() { return signalTexture; }
+    EmptyTextureResourcePtr GetSignalOutputTexture() { return signalOutputTexture; }
+    EmptyTextureResourcePtr GetSignalOutput2Texture() { return signalOutput2Texture; }
 
     Utils::Inspection::ValueList Inspection();
 
@@ -82,6 +103,9 @@ public:
 
     bool GetFID() { return fid; }
     void SetFID(bool enable) { fid = enable; }
+
+    float GetDT() { return theDT; }
+    void SetDT(float d) { theDT = d; }
 
     unsigned int GetIndex() { return idx; }
     void SetIndex(unsigned int index) { idx = index; }

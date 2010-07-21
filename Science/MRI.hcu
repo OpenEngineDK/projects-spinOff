@@ -10,4 +10,5 @@ struct SpinProperty {
 
 void MRI_test(cuFloatComplex* input);
 
-__host__ void MRI_step(float dt, float3* lab_spins, float3* ref_spins, SpinProperty* props, unsigned int w, unsigned int h, float3 _b, float _gx, float _gy);
+__host__ float3 MRI_step(float dt, float3* lab_spins, float3* ref_spins, SpinProperty* props, unsigned int w, unsigned int h, float3 _b, float _gx, float _gy);
+

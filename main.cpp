@@ -76,12 +76,12 @@ static TransformationNode* CreateTextureBillboard(ITextureResourcePtr texture,
     FaceSet* faces = new FaceSet();
 
     float horisontalhalfsize = textureHosisontalSize * 0.5;
-    Vector<3,float>* lowerleft = new Vector<3,float>(horisontalhalfsize,0,0);
-    Vector<3,float>* lowerright = new Vector<3,float>(-horisontalhalfsize,0,0);
-    Vector<3,float>* upperleft = new Vector<3,float>(horisontalhalfsize,textureVerticalSize,0);
-    Vector<3,float>* upperright = new Vector<3,float>(-horisontalhalfsize,textureVerticalSize,0);
+    Vector<3,float> lowerleft = Vector<3,float>(horisontalhalfsize,0,0);
+    Vector<3,float> lowerright = Vector<3,float>(-horisontalhalfsize,0,0);
+    Vector<3,float> upperleft = Vector<3,float>(horisontalhalfsize,textureVerticalSize,0);
+    Vector<3,float> upperright = Vector<3,float>(-horisontalhalfsize,textureVerticalSize,0);
 
-    FacePtr leftside = FacePtr(new Face(*lowerleft,*lowerright,*upperleft));
+    FacePtr leftside = FacePtr(new Face(lowerleft,lowerright,upperleft));
 
     /*
       leftside->texc[1] = Vector<2,float>(1,0);
@@ -96,7 +96,7 @@ static TransformationNode* CreateTextureBillboard(ITextureResourcePtr texture,
     leftside->Scale(scale);
     faces->Add(leftside);
 
-    FacePtr rightside = FacePtr(new Face(*lowerright,*upperright,*upperleft));
+    FacePtr rightside = FacePtr(new Face(lowerright,upperright,upperleft));
     /*
       rightside->texc[2] = Vector<2,float>(0,1);
       rightside->texc[1] = Vector<2,float>(1,1);
@@ -197,15 +197,15 @@ struct Wall {
 int main(int argc, char** argv) {
     IEnvironment* env = new SDLEnvironment(1024,768,32);
 
-    // IRenderingView* rv = new MRIRenderingView();
+    //IRenderingView* rv = new MRIRenderingView();
+    IRenderingView* rv = NULL;
 
     // Create simple setup
-    // SimpleSetup* setup = new SimpleSetup("SpinOff", env, rv);
-    SimpleSetup* setup = new SimpleSetup("SpinOff", env);
+    SimpleSetup* setup = new SimpleSetup("SpinOff", env, rv);
     
     DirectoryManager::AppendPath("./projects/spinOff/report/pics/");
 
-    setup->GetRenderer().SetBackgroundColor(Vector<4,float>(0.0));
+    setup->GetRenderer().SetBackgroundColor(Vector<4,float>(0.1));
 
 
     BetterMoveHandler* move_h = new BetterMoveHandler(*(setup->GetCamera()), 
@@ -260,6 +260,9 @@ int main(int argc, char** argv) {
     wall(0,1) = WallItem(mri->GetTestTexture(), "test output");
     wall(1,1) = WallItem(mri->GetDescaledTexture(), "descaled");
     wall(1,1).scale = Vector<2,unsigned int>(10,10);
+    wall(2,1) = WallItem(mri->GetSignalTexture(), "signal");
+    wall(1,2) = WallItem(mri->GetSignalOutputTexture(), "signal output");
+    wall(0,2) = WallItem(mri->GetSignalOutput2Texture(), "signal output 2");
 
     ISceneNode *wallNode = wall.MakeScene();
     setup->SetScene(*wallNode);
@@ -271,18 +274,16 @@ int main(int argc, char** argv) {
 
 
     // Create Scene
-    // MRINode* mrinode = new MRINode();
-    // setup->GetEngine().ProcessEvent().Attach(*mrinode);
-    // setup->SetScene(*mrinode);
+    if (0) {
+        MRINode* mrinode = new MRINode();
+        setup->GetEngine().ProcessEvent().Attach(*mrinode);
+        setup->SetScene(*mrinode);
+        
+        MRIHandler handle = MRIHandler(mrinode);
+        setup->GetKeyboard().KeyEvent().Attach(handle);
 
-    // MRIHandler handle = MRIHandler(mrinode);
-    // setup->GetKeyboard().KeyEvent().Attach(handle);
-
-    // Register the handler as a listener on up and down keyboard events.
-
-    // setup->GetCamera()->SetPosition(Vector<3, float>(20, 20, 0));
-    // setup->GetCamera()->LookAt(0, 0, 0);
-
+        setup->GetCamera()->LookAt(0, 0, 0);
+    }
     // Start the engine.
     setup->GetEngine().Start();    
     

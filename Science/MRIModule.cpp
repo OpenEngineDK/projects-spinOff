@@ -35,7 +35,10 @@ MRIModule::MRIModule(ITextureResourcePtr img)
     , testOutputTexture(EmptyTextureResource::Create(img->GetWidth(), 
                                                      img->GetHeight(), 
                                                      24))
-    , descaledOutputTexture(EmptyTextureResource::Create(4,4,24))
+    , descaledOutputTexture(EmptyTextureResource::Create(DESCALE_W,DESCALE_H,24))
+    , signalTexture(EmptyTextureResource::Create(100,100,24))
+    , signalOutputTexture(EmptyTextureResource::Create(100,100,8))
+    , signalOutput2Texture(EmptyTextureResource::Create(100,100,8))
     , running(false)
     , fid(false)
     , b0(.5)
@@ -45,13 +48,16 @@ MRIModule::MRIModule(ITextureResourcePtr img)
     , ref_spins(NULL)
     , props(NULL)
     , idx(99747)
+    , theDT(1e-8)
+    , sigIdx(0,0)
+    , signalData((cuFloatComplex*)malloc(sizeof(cuFloatComplex)*100*100))
  {
  }
 
 void MRIModule::Handle(Renderers::RenderingEventArg arg) {
-    unsigned int w = 4;
-    unsigned int h = 4;
-    float size = 5.0;
+    unsigned int w = DESCALE_W;
+    unsigned int h = DESCALE_H;
+    float size = 20.0;
     float space = 2.0;
 
     arg.renderer.ApplyViewingVolume(*arg.canvas.GetViewingVolume());
@@ -59,8 +65,11 @@ void MRIModule::Handle(Renderers::RenderingEventArg arg) {
     for (unsigned int i=0;i<w;i++) {
         for (unsigned int j=0;j<h;j++) {                
             Vector<3,float> dir = descaledVectors[i][j]*size;
-            //logger.info << "lvec: " << dir.GetLength() << logger.end;
-            arg.renderer.DrawLine(Line(Vector<3,float>(i,j,0.0)*space, Vector<3,float>(i*space+dir[0], j*space+dir[1],dir[2])), Vector<3,float>(1.0,0.0,0.0), 2.0);
+            arg.renderer.DrawLine(Line(Vector<3,float>(i,j,0.0)*space,
+                                       Vector<3,float>(i*space+dir[0],
+                                                       j*space+dir[1],
+                                                       dir[2])), 
+                                  Vector<3,float>(1.0,0.0,0.0), 2.0);
         }
     }
 }
@@ -71,9 +80,8 @@ void MRIModule::Handle(ProcessEventArg arg) {
         unsigned int h = img->GetHeight();
         float timeScale = 0.000001;
         float dt = arg.approx * 0.000001 * timeScale;
-        dt = 1e-7;
-        //dt = arg.approx * 1e-13;
-        logger.info << "running kernel (dt: " << dt << "sec)" << logger.end;
+        dt = theDT;
+
 
         float3 b = make_float3(0.0,0.0,b0);
         if (fid) {
@@ -81,7 +89,8 @@ void MRIModule::Handle(ProcessEventArg arg) {
             b += make_float3(Math::PI*0.5,0.0,0.0);
             fid = false;
         }
-        MRI_step(dt, (float3*)lab_spins, (float3*)ref_spins, props, img->GetWidth(), img->GetHeight(), b, gx, gy);
+
+        float3 signal = MRI_step(dt, (float3*)lab_spins, (float3*)ref_spins, props, img->GetWidth(), img->GetHeight(), b, gx, gy);
 
         float* data = (float*)malloc(sizeof(float3) * w * h);
         cudaMemcpy(data, lab_spins, w * h * sizeof(float3), cudaMemcpyDeviceToHost);
@@ -97,9 +106,29 @@ void MRIModule::Handle(ProcessEventArg arg) {
 
         Descale(data,w,h);
 
+
+        if (sigIdx[1] < 100) {
+            // signal
+            if (sigIdx[0] == 100) {
+                sigIdx[0] = 0;
+                sigIdx[1]++;
+            }            
+            (*signalTexture)(sigIdx[0],sigIdx[1],0) = signal.x*255;
+            (*signalTexture)(sigIdx[0],sigIdx[1],1) = signal.y*255;
+            (*signalTexture)(sigIdx[0],sigIdx[1],2) = signal.z*255;
+            
+            signalData[sigIdx[1]*100+sigIdx[0]] 
+                = make_cuFloatComplex(signal.x, signal.y);
+
+            sigIdx[0]++;
+            if (sigIdx[0] == 100)
+                fid = true;
+            signalTexture->RebindTexture();
+        }
+
         unsigned int index = idx;
         Vector<3,float> magnet(data[index*3], data[index*3+1], data[index*3+2]);
-        logger.info << "reading index: " << index << " with value: " << magnet << logger.end;
+        //logger.info << "reading index: " << index << " with value: " << magnet << logger.end;
 
         free(data);
     }
@@ -107,7 +136,9 @@ void MRIModule::Handle(ProcessEventArg arg) {
 
 void MRIModule::Descale(float *data, int w, int h) {
     
-    unsigned int nw=4, nh=4;
+    unsigned int
+        nw=DESCALE_W,
+        nh=DESCALE_H;
 
     unsigned int sx = w/nw;
     unsigned int sy = h/nh;
@@ -131,10 +162,11 @@ void MRIModule::Descale(float *data, int w, int h) {
 
             (*descaledOutputTexture)(x,y,0) = sum_x*255;
             (*descaledOutputTexture)(x,y,1) = sum_y*255;
-            (*descaledOutputTexture)(x,y,3) = sum_z*255;
+            (*descaledOutputTexture)(x,y,2) = sum_z*255;
+            
+            
             descaledVectors[x][y] = Vector<3,float>(sum_x, sum_y, sum_z);
         }
-
     descaledOutputTexture->RebindTexture();
 }
 
@@ -160,6 +192,7 @@ void MRIModule::Handle(InitializeEventArg arg) {
              pix /= 255;
         
              data[(i*h+j)] = make_float3(0.0, scale*pix, 0.0);
+
              // data[(i*h+j)*3+1] = scale*pix;
              // data[(i*h+j)*3+2] = 0.0;
              SpinProperty p;
@@ -167,6 +200,7 @@ void MRIModule::Handle(InitializeEventArg arg) {
              p.t1 = (1e-5)*pix+(1e-6);
              p.t2 = (1e-6)*pix+(1e-7);
              ps[i*h+j] = p;
+
         }
     }
 
@@ -219,7 +253,10 @@ void MRIModule::Handle(KeyboardEventArg arg) {
         
         cudaMemcpy(devData, data, w * h * sizeof(cuFloatComplex), cudaMemcpyHostToDevice);
 
+        cudaThreadSynchronize();
+
         bool b = I2K_ALL(devData, dims);
+
         logger.info << "I2K_ALL = " << b << logger.end;
 
         cudaMemcpy(data, devData, w * h * sizeof(cuFloatComplex), cudaMemcpyDeviceToHost);
@@ -241,6 +278,7 @@ void MRIModule::Handle(KeyboardEventArg arg) {
         outputTexture->RebindTexture();
 
         // k 2 i
+    cudaThreadSynchronize();
 
         K2I_ALL(devData, dims);
 
@@ -257,23 +295,78 @@ void MRIModule::Handle(KeyboardEventArg arg) {
 
         cudaFree(devData);
         free(data);
-    } else if (arg.sym == KEY_s) {
-        // Step!
+    } else if (arg.sym == KEY_m) {
+        logger.info << "Make signal output!" << logger.end;
+        unsigned int w = 100;
+        unsigned int h = 100;
+        // make the output image!
+        cuFloatComplex* data = (cuFloatComplex*)malloc(sizeof(cuFloatComplex) * w * h);
+
+        cuFloatComplex *devData;
+        cudaMalloc((void**)&devData, sizeof(cuFloatComplex)*w*h);
+        cudaMemcpy(devData, signalData, sizeof(cuFloatComplex)*w*h, cudaMemcpyHostToDevice);
+        K2I_ALL(devData, make_uint2(w,h));
         
+        cudaMemcpy(data, devData, w * h * sizeof(cuFloatComplex), cudaMemcpyDeviceToHost);
+
+        float maxl = 0;
+        for (unsigned int i=0;i<w;i++) {
+            for (unsigned int j=0;j<h;j++) {
+                cuFloatComplex c = data[i*h+j];
+                float l = sqrt(c.x*c.x + c.y*c.y);
+                //logger.info << l << logger.end;
+                maxl = (fmax(maxl,l));
+            }
+        }
+
+        logger.info << maxl << logger.end;
+
+        for (unsigned int i=0;i<w;i++) {
+            for (unsigned int j=0;j<h;j++) {
+                cuFloatComplex c = data[i*h+j];
+                (*signalOutputTexture)(i,j) = (255/maxl)*sqrt(c.x*c.x + c.y*c.y);
+
+            }
+        }
+        signalOutputTexture->RebindTexture();
+
+        cudaMemcpy(devData, signalData, sizeof(cuFloatComplex)*w*h, cudaMemcpyHostToDevice);
+        I2K_ALL(devData, make_uint2(w,h));
+        
+        cudaMemcpy(data, devData, w * h * sizeof(cuFloatComplex), cudaMemcpyDeviceToHost);
+
+        maxl = 0;
+        for (unsigned int i=0;i<w;i++) {
+            for (unsigned int j=0;j<h;j++) {
+                cuFloatComplex c = data[i*h+j];
+                float l = sqrt(c.x*c.x + c.y*c.y);
+                //logger.info << l << logger.end;
+                maxl = (fmax(maxl,l));
+            }
+        }
+
+        logger.info << maxl << logger.end;
+
+        for (unsigned int i=0;i<w;i++) {
+            for (unsigned int j=0;j<h;j++) {
+                cuFloatComplex c = data[i*h+j];
+                (*signalOutput2Texture)(i,j) = (255/maxl)*sqrt(c.x*c.x + c.y*c.y);
+
+            }
+        }
+        signalOutput2Texture->RebindTexture();
+
+        
+
+        cudaFree(devData);
+        free(data);
     }
 }
 
 using namespace Utils::Inspection;
 
 #define MRI_INSPECTION(type, field, _name)                              \
-    do {                                                                \
-    RWValueCall<MRIModule, type> *v                                     \
-    = new RWValueCall<MRIModule, type>(*this,                           \
-                                       &MRIModule::Get##field,          \
-                                       &MRIModule::Set##field);         \
-    v->name = _name;                                                    \
-    values.push_back(v);                                                \
-    } while (0)
+    INSPECT_VALUE(MRIModule, type, field, _name)
 
 ValueList MRIModule::Inspection() {
     ValueList values;
@@ -285,9 +378,17 @@ ValueList MRIModule::Inspection() {
     MRI_INSPECTION(float, Gx, "Gradient X");  // Gradient x component field strength
     MRI_INSPECTION(float, Gy, "Gradient y");  // Gradient y component field strength
     MRI_INSPECTION(bool, FID, "FID signal");  // B1 toggle
-    MRI_INSPECTION(unsigned int, Index, "test index");  // 
-    ((RWValue<unsigned int>*)values.back())->properties[MAX] = w*h;
-
+    {
+        MRI_INSPECTION(unsigned int, Index, "test index");
+        ((RWValue<unsigned int>*)values.back())->properties[MAX] = w*h;
+    }
+    {
+        MRI_INSPECTION(float, DT, "dt (sec)");  // Delta time
+        ((RWValue<float>*)values.back())->properties[MIN] = 1e-9;
+        ((RWValue<float>*)values.back())->properties[MAX] = 1e-6;
+        ((RWValue<float>*)values.back())->properties[STEP] = 1e-9;
+ 
+    }
     return values;
 }
 
