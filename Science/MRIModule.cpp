@@ -44,6 +44,7 @@ MRIModule::MRIModule(ITextureResourcePtr img)
     , b0(.5)
     , gx(0.0)
     , gy(0.0)
+    , fov(0.01)
     , lab_spins(NULL)
     , ref_spins(NULL)
     , props(NULL)
@@ -79,9 +80,11 @@ void MRIModule::Handle(ProcessEventArg arg) {
         unsigned int w = img->GetWidth();
         unsigned int h = img->GetHeight();
         float timeScale = 0.000001;
-        float dt = arg.approx * 0.000001 * timeScale;
-        dt = theDT;
+        
+        float dt = theDT;
 
+        float samplingRate = 1.0/dt;
+        gx = samplingRate / GYROMAGNETIC_RATIO * fov;
 
         float3 b = make_float3(0.0,0.0,b0);
         if (fid) {
@@ -121,14 +124,16 @@ void MRIModule::Handle(ProcessEventArg arg) {
                 = make_cuFloatComplex(signal.x, signal.y);
 
             sigIdx[0]++;
-            if (sigIdx[0] == 100)
+            if (sigIdx[0] == 100) {
+                
                 fid = true;
+            }
             signalTexture->RebindTexture();
         }
 
         unsigned int index = idx;
         Vector<3,float> magnet(data[index*3], data[index*3+1], data[index*3+2]);
-        //logger.info << "reading index: " << index << " with value: " << magnet << logger.end;
+        // logger.info << "reading index: " << index << " with value: " << magnet << logger.end;
 
         free(data);
     }
@@ -375,6 +380,7 @@ ValueList MRIModule::Inspection() {
 
     MRI_INSPECTION(bool, Running, "running"); // simulation toggle
     MRI_INSPECTION(float, B0, "B0 (Tesla)");  // B0 field strength
+    MRI_INSPECTION(float, FOV, "Field of view");  // Field of view
     MRI_INSPECTION(float, Gx, "Gradient X");  // Gradient x component field strength
     MRI_INSPECTION(float, Gy, "Gradient y");  // Gradient y component field strength
     MRI_INSPECTION(bool, FID, "FID signal");  // B1 toggle

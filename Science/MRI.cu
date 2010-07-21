@@ -8,16 +8,8 @@
 __constant__ float3 b;
 __constant__ float gx;
 __constant__ float gy;
-//__constant__ float gy;
-
-//__constant__ float flip;
-
-const float T1 = 1e-5; // spin lattice in seconds.
-const float T2 = 1e-6; // spin spin in seconds.
-const float GYROMAGNETIC_RATIO = 42.58e6; // hertz pr tesla
-// const float BOLTZMANN_CONSTANT = 1.3805e-23; // Joule / Kelvin
-// const float PLANCK_CONSTANT = 6.626e-34; // Joule * seconds
-
+__constant__ unsigned int w;
+__constant__ unsigned int size;
 
 struct mat3x3 {
     float3 r1;
@@ -256,6 +248,7 @@ float thetime = 0.0;
 
 __host__ float3 MRI_step(float dt, float3* lab_spins, float3* ref_spins,
                        SpinProperty* props, unsigned int w, unsigned int h, float3 _b, float _gx, float _gy) {
+
     cudaMemcpyToSymbol(b, &_b, sizeof(float3));
     cudaMemcpyToSymbol(gx, &_gx, sizeof(float));
     cudaMemcpyToSymbol(gy, &_gy, sizeof(float));
@@ -281,9 +274,6 @@ __host__ float3 MRI_step(float dt, float3* lab_spins, float3* ref_spins,
     CHECK_FOR_CUDA_ERROR();
     cudaThreadSynchronize();
 
-    // printf("gx = ");
-    // printFloat(_gx);
-
     cudaMemcpy(odata, lab_spins, reduceBlocks*sizeof(float3),cudaMemcpyDeviceToDevice);
     reduce3<float3><<< gridDim, blockDim >>>(lab_spins, odata, w*h, make_float3(0,0,0));
 
@@ -300,24 +290,6 @@ __host__ float3 MRI_step(float dt, float3* lab_spins, float3* ref_spins,
         }
 
     cudaFree(odata);
-
-    //gpu_result /= w*h;
-
-    /* printf("reduced = "); */
-    /* printVec3(gpu_result); */
-    float3 v = make_float3(0.8, 0.1, 0.1);
-    /* printf("v = "); */
-    /* printVec3(v); */
-
-    /* printf("relax = "); */
-
-    /* printMat(relax(dt, T1, T2)); */
-
-    float3 v2 = relax(dt, T1, T2) * v;
-
-    /* printf(" v * relax = "); */
-
-    /* printVec3(v2); */
 
     return gpu_result;
 }

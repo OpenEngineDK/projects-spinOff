@@ -2,6 +2,12 @@
 
 #include <cuComplex.h>
 
+const float T1 = 1e-5; // spin lattice in seconds.
+const float T2 = 1e-6; // spin spin in seconds.
+const float GYROMAGNETIC_RATIO = 42.58e6; // hertz pr tesla
+// const float BOLTZMANN_CONSTANT = 1.3805e-23; // Joule / Kelvin
+// const float PLANCK_CONSTANT = 6.626e-34; // Joule * seconds
+
 struct SpinProperty {
     float eq;
     float t1;

@@ -56,7 +56,7 @@ private:
     
 
     bool running, fid, test;
-    float b0, gx, gy;
+    float b0, gx, gy, fov;
     float *lab_spins, *ref_spins;
     SpinProperty* props;
     unsigned int idx;
@@ -100,6 +100,9 @@ public:
 
     float GetGy() { return gy; }
     void SetGy(float gy) { this->gy = gy; }
+
+    float GetFOV() { return fov; }
+    void SetFOV(float fov) { this->fov = fov; }
 
     bool GetFID() { return fid; }
     void SetFID(bool enable) { fid = enable; }
