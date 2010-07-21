@@ -69,7 +69,7 @@ void MRIModule::Handle(ProcessEventArg arg) {
         unsigned int h = img->GetHeight();
         float timeScale = 0.000001;
         float dt = arg.approx * 0.000001 * timeScale;
-        dt = 1e-7;
+        dt = 1e-8;
         //dt = arg.approx * 1e-13;
         logger.info << "running kernel (dt: " << dt << "sec)" << logger.end;
 
@@ -163,8 +163,8 @@ void MRIModule::Handle(InitializeEventArg arg) {
              // data[(i*h+j)*3+2] = 0.0;
              SpinProperty p;
              p.eq = scale*pix;
-             p.t1 = (1e-5)*pix;
-             p.t2 = (1e-6)*pix;
+             p.t1 = (1e-5)*pix+(1e-6);
+             p.t2 = (1e-6)*pix+(1e-7);
              ps[i*h+j] = p;
         }
     }
