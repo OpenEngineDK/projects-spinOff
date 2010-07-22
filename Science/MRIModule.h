@@ -68,8 +68,11 @@ private:
     SpinProperty* props;
     unsigned int idx;
 
+
+    
     float theDT, theTime;
     Vector<2,int> sigIdx;
+    unsigned int sig2Idx;
     
     cuFloatComplex *signalData;
 

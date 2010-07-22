@@ -59,6 +59,7 @@ MRIModule::MRIModule(ITextureResourcePtr img)
     , theDT(1e-8)
     , theTime(0.0)
     , sigIdx(0,0)
+    , sig2Idx(0)
     , signalData((cuFloatComplex*)malloc(sizeof(cuFloatComplex)*SIGNAL_SIZE*100))
  {
      phaseTime = theDT;
@@ -187,14 +188,28 @@ void MRIModule::Handle(ProcessEventArg arg) {
             float3 signal = MRI_step(0.0, theTime, (float3*)lab_spins, (float3*)ref_spins,
                                      props, w, h, _b, 0.0, 0.0);
             fid = false;
+            sig2Idx = 0;
             cudaThreadSynchronize();
         }
         float dt = theDT;
         theTime += dt;
         float3 signal = MRI_step(dt, theTime, (float3*)lab_spins, (float3*)ref_spins,
                                  props, img->GetWidth(), img->GetHeight(), b, gx, gy);
+
+        plotData1->SetValue(sig2Idx % SIGNAL_SIZE,
+                            signal.x);
+        plotData2->SetValue(sig2Idx % SIGNAL_SIZE,
+                            signal.y);
+
+        plot->RenderInEmptyTexture(plotTexture);
+        plotTexture->RebindTexture();
+
+
+        sig2Idx++;
         
     }
+
+    
 
     // copy result to textures 'n stuff
     float* data = (float*)malloc(sizeof(float3) * w * h);
@@ -408,6 +423,7 @@ void MRIModule::Handle(KeyboardEventArg arg) {
         signalOutputTexture->RebindTexture();
 
         cudaMemcpy(devData, signalData, sizeof(cuFloatComplex)*w*h, cudaMemcpyHostToDevice);
+
         I2K_ALL(devData, make_uint2(w,h));
         
         cudaMemcpy(data, devData, w * h * sizeof(cuFloatComplex), cudaMemcpyDeviceToHost);
