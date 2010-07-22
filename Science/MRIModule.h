@@ -33,6 +33,8 @@ namespace Science {
 #define DESCALE_W 7
 #define DESCALE_H DESCALE_W
 
+#define SIGNAL_SIZE 500
+
 using namespace Core;
 using namespace Resources;
 
@@ -52,6 +54,7 @@ private:
     
     Plot* plot;
     PointGraphDataSet* plotData1;
+    PointGraphDataSet* plotData2;
 
     Vector<3,float> descaledVectors[DESCALE_W][DESCALE_H];
 

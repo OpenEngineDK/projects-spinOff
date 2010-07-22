@@ -36,12 +36,13 @@ MRIModule::MRIModule(ITextureResourcePtr img)
                                                      img->GetHeight(), 
                                                      24))
     , descaledOutputTexture(EmptyTextureResource::Create(DESCALE_W,DESCALE_H,24))
-    , signalTexture(EmptyTextureResource::Create(100,100,24))
-    , signalOutputTexture(EmptyTextureResource::Create(100,100,8))
-    , signalOutput2Texture(EmptyTextureResource::Create(100,100,8))
-    , plotTexture(EmptyTextureResource::Create(200,100,24))
-    , plot(new Plot(Vector<2,float>(0,100), Vector<2,float>(-1,1)))
-    , plotData1(new PointGraphDataSet(100, 0, 100))
+    , signalTexture(EmptyTextureResource::Create(SIGNAL_SIZE,100,24))
+    , signalOutputTexture(EmptyTextureResource::Create(SIGNAL_SIZE,100,8))
+    , signalOutput2Texture(EmptyTextureResource::Create(SIGNAL_SIZE,100,8))
+    , plotTexture(EmptyTextureResource::Create(SIGNAL_SIZE,100,24))
+    , plot(new Plot(Vector<2,float>(0,SIGNAL_SIZE), Vector<2,float>(-1,1)))
+    , plotData1(new PointGraphDataSet(SIGNAL_SIZE, 0, SIGNAL_SIZE))
+    , plotData2(new PointGraphDataSet(SIGNAL_SIZE, 0, SIGNAL_SIZE))
     , running(false)
     , fid(false)
     , sequence(false)
@@ -55,13 +56,15 @@ MRIModule::MRIModule(ITextureResourcePtr img)
     , ref_spins(NULL)
     , props(NULL)
     , idx(99747)
-    , theDT(5e-8)
+    , theDT(1e-8)
     , theTime(0.0)
     , sigIdx(0,0)
-    , signalData((cuFloatComplex*)malloc(sizeof(cuFloatComplex)*100*100))
+    , signalData((cuFloatComplex*)malloc(sizeof(cuFloatComplex)*SIGNAL_SIZE*100))
  {
      phaseTime = theDT;
      plot->AddDataSet(plotData1);
+     plotData2->SetColor(Vector<3,float>(0,0,1));
+     plot->AddDataSet(plotData2);
  }
 
 void MRIModule::Handle(Renderers::RenderingEventArg arg) {
@@ -113,8 +116,8 @@ void MRIModule::FIDSequence() {
             cudaThreadSynchronize();
             // the phase
             float pt = phaseTime;
-            gy = 100 / (2*GYROMAGNETIC_RATIO*fov*phaseTime);
-            gy -= (2*gy/ 100)*sigIdx[1];
+            gy = SIGNAL_SIZE / (2*GYROMAGNETIC_RATIO*fov*phaseTime);
+            gy -= (2*gy/ SIGNAL_SIZE)*sigIdx[1];
             logger.info << "sigIdx[1] = " << sigIdx[1] << logger.end;
             logger.info << "gy = " << gy << logger.end;
             while (pt > 0) {
@@ -137,7 +140,7 @@ void MRIModule::FIDSequence() {
         
         //signal aquisition
         float signalScale = 0.1;
-        if (sigIdx[1] < 100) {
+        if (sigIdx[1] < SIGNAL_SIZE) {
             // signal
             (*signalTexture)(sigIdx[0],sigIdx[1],0) = signalScale*signal.x*255;
             (*signalTexture)(sigIdx[0],sigIdx[1],1) = signalScale*signal.y*255;
@@ -145,13 +148,15 @@ void MRIModule::FIDSequence() {
             
             plotData1->SetValue(sigIdx[0],
                                 signal.x);
+            plotData2->SetValue(sigIdx[0],
+                                signal.y);
 
 
-            signalData[sigIdx[1]*100+sigIdx[0]] 
+            signalData[sigIdx[1]*SIGNAL_SIZE+sigIdx[0]] 
                 = make_cuFloatComplex(signal.x, signal.y);
             
             sigIdx[0]++;                
-            if (sigIdx[0] == 100) {
+            if (sigIdx[0] == SIGNAL_SIZE) {
                 sigIdx[0] = 0;
                 sigIdx[1]++;                    
                 
@@ -369,7 +374,7 @@ void MRIModule::Handle(KeyboardEventArg arg) {
         free(data);
     } else if (arg.sym == KEY_m) {
         logger.info << "Make signal output!" << logger.end;
-        unsigned int w = 100;
+        unsigned int w = SIGNAL_SIZE;
         unsigned int h = 100;
         // make the output image!
         cuFloatComplex* data = (cuFloatComplex*)malloc(sizeof(cuFloatComplex) * w * h);
