@@ -47,5 +47,6 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME}
   Extensions_AntTweakBar
   Extensions_Inspection
   Extensions_InspectionBar
+  Extensions_Plotting
   ${CUDA_KERNELS}
 )

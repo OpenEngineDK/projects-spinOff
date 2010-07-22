@@ -257,12 +257,16 @@ int main(int argc, char** argv) {
     wall(0,0) = WallItem(girl, "Girl");
     wall(1,0) = WallItem(mri->GetOutputTexture(), "output");
     wall(2,0) = WallItem(mri->GetInverseTexture(), "inverse");
+
     wall(0,1) = WallItem(mri->GetTestTexture(), "test output");
     wall(1,1) = WallItem(mri->GetDescaledTexture(), "descaled");
     wall(1,1).scale = Vector<2,unsigned int>(10,10);
     wall(2,1) = WallItem(mri->GetSignalTexture(), "signal");
+
     wall(1,2) = WallItem(mri->GetSignalOutputTexture(), "signal output");
+
     wall(0,2) = WallItem(mri->GetSignalOutput2Texture(), "signal output 2");
+    wall(2,2) = WallItem(mri->GetPlotTexture(), "Plot");
 
     ISceneNode *wallNode = wall.MakeScene();
     setup->SetScene(*wallNode);

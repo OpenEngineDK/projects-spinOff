@@ -17,6 +17,8 @@
 #include <Resources/EmptyTextureResource.h>
 #include <Utils/IInspector.h>
 #include <Renderers/IRenderer.h>
+#include <Science/Plot.h>
+#include <Science/PointGraphDataSet.h>
 #include "MRI.hcu"
 
 namespace OpenEngine {
@@ -46,9 +48,10 @@ private:
     EmptyTextureResourcePtr signalTexture;
     EmptyTextureResourcePtr signalOutputTexture;
     EmptyTextureResourcePtr signalOutput2Texture;
+    EmptyTextureResourcePtr plotTexture;
     
-
-  
+    Plot* plot;
+    PointGraphDataSet* plotData1;
 
     Vector<3,float> descaledVectors[DESCALE_W][DESCALE_H];
 
@@ -63,7 +66,6 @@ private:
     unsigned int idx;
 
     float theDT, theTime;
-
     Vector<2,int> sigIdx;
     
     cuFloatComplex *signalData;
@@ -86,6 +88,7 @@ public:
     EmptyTextureResourcePtr GetSignalTexture() { return signalTexture; }
     EmptyTextureResourcePtr GetSignalOutputTexture() { return signalOutputTexture; }
     EmptyTextureResourcePtr GetSignalOutput2Texture() { return signalOutput2Texture; }
+    EmptyTextureResourcePtr GetPlotTexture() { return plotTexture; }
 
     Utils::Inspection::ValueList Inspection();
 

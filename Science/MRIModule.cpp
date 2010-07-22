@@ -39,6 +39,9 @@ MRIModule::MRIModule(ITextureResourcePtr img)
     , signalTexture(EmptyTextureResource::Create(100,100,24))
     , signalOutputTexture(EmptyTextureResource::Create(100,100,8))
     , signalOutput2Texture(EmptyTextureResource::Create(100,100,8))
+    , plotTexture(EmptyTextureResource::Create(200,100,24))
+    , plot(new Plot(Vector<2,float>(0,100), Vector<2,float>(-1,1)))
+    , plotData1(new PointGraphDataSet(100, 0, 100))
     , running(false)
     , fid(false)
     , sequence(false)
@@ -58,6 +61,7 @@ MRIModule::MRIModule(ITextureResourcePtr img)
     , signalData((cuFloatComplex*)malloc(sizeof(cuFloatComplex)*100*100))
  {
      phaseTime = theDT;
+     plot->AddDataSet(plotData1);
  }
 
 void MRIModule::Handle(Renderers::RenderingEventArg arg) {
@@ -137,8 +141,12 @@ void MRIModule::FIDSequence() {
             // signal
             (*signalTexture)(sigIdx[0],sigIdx[1],0) = signalScale*signal.x*255;
             (*signalTexture)(sigIdx[0],sigIdx[1],1) = signalScale*signal.y*255;
-            (*signalTexture)(sigIdx[0],sigIdx[1],2) = signal.z*255;
+            (*signalTexture)(sigIdx[0],sigIdx[1],2) = 0;//signal.z*255;
             
+            plotData1->SetValue(sigIdx[0],
+                                signal.x);
+
+
             signalData[sigIdx[1]*100+sigIdx[0]] 
                 = make_cuFloatComplex(signal.x, signal.y);
             
@@ -151,6 +159,9 @@ void MRIModule::FIDSequence() {
             }
         }
     }
+    plot->RenderInEmptyTexture(plotTexture);
+    plotTexture->RebindTexture();
+
     signalTexture->RebindTexture();
 }
 
