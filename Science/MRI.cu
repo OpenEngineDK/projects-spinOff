@@ -145,6 +145,17 @@ void MRI_test(cuFloatComplex* input) {
         
 }
 
+inline __host__ __device__ uint2 idx_to_co(unsigned int idx, uint2 dim)
+{
+  uint2 co;
+  unsigned int temp = idx;
+  co.x = temp%dim.x;temp -= co.x;
+  co.y = temp/(dim.x);
+  
+  return co;
+}
+
+
 __global__ void MRI_step_kernel(float dt, float3* lab_spins, float3* ref_spins, SpinProperty* props, unsigned int size, float thetime) {
     unsigned int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -157,23 +168,28 @@ __global__ void MRI_step_kernel(float dt, float3* lab_spins, float3* ref_spins, 
     float3 m = ref_spins[idx];
     float dtt1 = dt/props[idx].t1;
     float dtt2 = dt/props[idx].t2;
+    
+    uint2 pos = idx_to_co(idx, make_uint2(600,600));
 
-    float posX = float(idx % 600);
-    float posY = float(idx / 600);
+    const float pixelSize = 1.0;
+
+    float posX = pos.x * pixelSize;
+    float posY = pos.y * pixelSize;
     
 
     // fid rotation
     m = rotX(b.x)*m;
     // relaxation
     m += make_float3(-m.x*dtt2, -m.y*dtt2, (props[idx].eq-m.z)*dtt1);
-    ref_spins[idx] = m;
     // gradient rotation
     m = rotZ(GYROMAGNETIC_RATIO*gx*posX*dt)*m;
     m = rotZ(GYROMAGNETIC_RATIO*gy*posY*dt)*m;
-    // m = rotZ(gx)*m;
+
+    ref_spins[idx] = m;
 
     // reference to laboratory
     lab_spins[idx] = make_float3(m.x * cos(omega * thetime) - m.y * sin(omega*thetime), m.x * sin(omega * thetime) + m.y * cos(omega*thetime),  m.z);
+
 
 
 
@@ -244,9 +260,9 @@ __host__ void printFloat(float f) {
     printf("%f\n", f);
 }
 
-float thetime = 0.0;
+// float thetime = 0.0;
 
-__host__ float3 MRI_step(float dt, float3* lab_spins, float3* ref_spins,
+__host__ float3 MRI_step(float dt, float t, float3* lab_spins, float3* ref_spins,
                        SpinProperty* props, unsigned int w, unsigned int h, float3 _b, float _gx, float _gy) {
 
     cudaMemcpyToSymbol(b, &_b, sizeof(float3));
@@ -259,7 +275,6 @@ __host__ float3 MRI_step(float dt, float3* lab_spins, float3* ref_spins,
     /* printf("time = %e\n",dt); */
 
     //MRI_step_kernel_anal<<< gridDim, blockDim >>>(dt, (float3*)spin_packs, eq, w*h);
-    //    MRI_step_kernel<<< gridDim, blockDim >>>(dt, (float3*)spin_packs, eq, w*h);
     
     float3* odata;
 
@@ -267,9 +282,9 @@ __host__ float3 MRI_step(float dt, float3* lab_spins, float3* ref_spins,
 
     cudaMalloc((void**)&odata, reduceBlocks * sizeof(float3));
 
-    thetime += dt;
+    // thetime += dt;
     // MRI_step_kernel_anal<<< gridDim, blockDim >>>(thetime, (float3*)spin_packs, eq, w*h);
-    MRI_step_kernel<<< gridDim, blockDim >>>(dt, lab_spins, ref_spins, props, w*h, thetime);
+    MRI_step_kernel<<< gridDim, blockDim >>>(dt, lab_spins, ref_spins, props, w*h, t);
 
     CHECK_FOR_CUDA_ERROR();
     cudaThreadSynchronize();
@@ -290,6 +305,6 @@ __host__ float3 MRI_step(float dt, float3* lab_spins, float3* ref_spins,
         }
 
     cudaFree(odata);
-
+    free(c_odata);
     return gpu_result;
 }

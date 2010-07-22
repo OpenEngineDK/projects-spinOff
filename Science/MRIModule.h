@@ -55,19 +55,20 @@ private:
 
     
 
-    bool running, fid, test;
-    float b0, gx, gy, fov;
+    bool running, fid, sequence, test;
+    float b0, gx, gy, fov, phaseTime;
     float *lab_spins, *ref_spins;
     SpinProperty* props;
     unsigned int idx;
 
-    float theDT;
+    float theDT, theTime;
 
     Vector<2,int> sigIdx;
     
     cuFloatComplex *signalData;
 
     void Descale(float *data, int w, int h);
+    void FIDSequence();
 public:
     MRIModule(ITextureResourcePtr img);
     void Handle(ProcessEventArg arg);
@@ -92,6 +93,9 @@ public:
     bool GetRunning() { return running; }
     void SetRunning(bool running) { this->running = running; }
 
+    bool GetSequence() { return sequence; }
+    void SetSequence(bool sequence) { this->sequence = sequence; }
+
     float GetB0() { return b0; }
     void SetB0(float b0) { this->b0 = b0; }
 
@@ -104,6 +108,9 @@ public:
     float GetFOV() { return fov; }
     void SetFOV(float fov) { this->fov = fov; }
 
+    float GetPhaseTime() { return phaseTime; }
+    void SetPhaseTime(float phaseTime) { this->phaseTime = phaseTime; }
+
     bool GetFID() { return fid; }
     void SetFID(bool enable) { fid = enable; }
 
@@ -113,6 +120,7 @@ public:
     unsigned int GetIndex() { return idx; }
     void SetIndex(unsigned int index) { idx = index; }
 
+    
 };
 
 } // NS Science

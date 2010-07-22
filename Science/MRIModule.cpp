@@ -41,18 +41,22 @@ MRIModule::MRIModule(ITextureResourcePtr img)
     , signalOutput2Texture(EmptyTextureResource::Create(100,100,8))
     , running(false)
     , fid(false)
+    , sequence(false)
     , b0(.5)
     , gx(0.0)
     , gy(0.0)
-    , fov(0.01)
+    , fov(0.005)
+    , phaseTime(1e-6)
     , lab_spins(NULL)
     , ref_spins(NULL)
     , props(NULL)
     , idx(99747)
     , theDT(5e-8)
+    , theTime(0.0)
     , sigIdx(0,0)
     , signalData((cuFloatComplex*)malloc(sizeof(cuFloatComplex)*100*100))
  {
+     phaseTime = theDT;
  }
 
 void MRIModule::Handle(Renderers::RenderingEventArg arg) {
@@ -75,72 +79,117 @@ void MRIModule::Handle(Renderers::RenderingEventArg arg) {
     }
 }
 
-void MRIModule::Handle(ProcessEventArg arg) {
-    if (running) {
-        unsigned int w = img->GetWidth();
-        unsigned int h = img->GetHeight();
-        float timeScale = 0.000001;
+void MRIModule::FIDSequence() {
+    unsigned int w = img->GetWidth();
+    unsigned int h = img->GetHeight();
         
-        float dt = theDT;
+    float3 b = make_float3(0.0,0.0,b0);
+    float dt = theDT;
 
-        float samplingRate = 1.0/dt;
-        gx = samplingRate / GYROMAGNETIC_RATIO * fov;
-
-
-        for (int i=0;i<4;i++) {
-            float3 b = make_float3(0.0,0.0,b0);
-            if (fid) {
-                logger.info << "FID" << logger.end;
-                b += make_float3(Math::PI*0.5,0.0,0.0);
-                fid = false;
+    for (unsigned int i = 0; i < 4; i++) {
+        // initialize each line. flip 90 degree and apply phase gradient.
+        if (sigIdx[0]  == 0) {
+            theTime = 0.0;
+            // the flip
+            float3 _b = b + make_float3(Math::PI*0.5,0.0,0.0);
+            MRI_step(0.0, theTime, (float3*)lab_spins, (float3*)ref_spins,
+                     props, img->GetWidth(), img->GetHeight(), _b, 0.0, 0.0);
+            cudaThreadSynchronize();
+            // the phase
+            float pt = phaseTime;
+            gy = 100 / (2*GYROMAGNETIC_RATIO*fov*phaseTime);
+            gy -= (2*gy/ 100)*sigIdx[1];
+            logger.info << "sigIdx[1] = " << sigIdx[1] << logger.end;
+            logger.info << "gy = " << gy << logger.end;
+            while (pt > 0) {
+                pt -= dt;
+                theTime += dt;
+                MRI_step(dt, theTime, (float3*)lab_spins, (float3*)ref_spins,
+                         props, img->GetWidth(), img->GetHeight(), b, 0.0, gy);
+                CHECK_FOR_CUDA_ERROR();
+                cudaThreadSynchronize();
             }
-
-            float3 signal = MRI_step(dt, (float3*)lab_spins, (float3*)ref_spins,
-                                     props, img->GetWidth(), img->GetHeight(), b, gx, gy);
-
-            float signalScale = 0.1;
-            if (sigIdx[1] < 100) {
-                // signal
-                (*signalTexture)(sigIdx[0],sigIdx[1],0) = signalScale*signal.x*255;
-                (*signalTexture)(sigIdx[0],sigIdx[1],1) = signalScale*signal.y*255;
-                (*signalTexture)(sigIdx[0],sigIdx[1],2) = 0; //signal.z*255;
+            gy = 0.0;
+        }
+        
+        // relax with frequency gradient
+        theTime += dt;
+        float samplingRate = dt;
+        gx = samplingRate / (GYROMAGNETIC_RATIO * fov);
+        float3 signal = MRI_step(dt, theTime, (float3*)lab_spins, (float3*)ref_spins,
+                                 props, w, h, b, gx, 0.0);
+        
+        //signal aquisition
+        float signalScale = 0.1;
+        if (sigIdx[1] < 100) {
+            // signal
+            (*signalTexture)(sigIdx[0],sigIdx[1],0) = signalScale*signal.x*255;
+            (*signalTexture)(sigIdx[0],sigIdx[1],1) = signalScale*signal.y*255;
+            (*signalTexture)(sigIdx[0],sigIdx[1],2) = signal.z*255;
             
-                signalData[sigIdx[1]*100+sigIdx[0]] 
-                    = make_cuFloatComplex(signal.x, signal.y);
-
-                sigIdx[0]++;                
-                if (sigIdx[0] == 100) {
-                    sigIdx[0] = 0;
-                    sigIdx[1]++;                    
-                    fid = true;
+            signalData[sigIdx[1]*100+sigIdx[0]] 
+                = make_cuFloatComplex(signal.x, signal.y);
+            
+            sigIdx[0]++;                
+            if (sigIdx[0] == 100) {
+                sigIdx[0] = 0;
+                sigIdx[1]++;                    
+                
+                float relaxTime = 1e-5;
+                while (relaxTime > 0) {
+                    relaxTime -= dt;
+                    theTime += dt;
+                    MRI_step(dt, theTime, (float3*)lab_spins, (float3*)ref_spins,
+                             props, img->GetWidth(), img->GetHeight(), b, gx, gy);
+                    CHECK_FOR_CUDA_ERROR();
+                    cudaThreadSynchronize();
                 }
             }
         }
-        signalTexture->RebindTexture();
-
-
-
-
-        float* data = (float*)malloc(sizeof(float3) * w * h);
-        cudaMemcpy(data, lab_spins, w * h * sizeof(float3), cudaMemcpyDeviceToHost);
-
-        for (unsigned int i=0;i<w;i++) {
-            for (unsigned int j=0;j<h;j++) {                
-                (*testOutputTexture)(i,j,0) = data[(i*h+j)*3+0]*255;
-                (*testOutputTexture)(i,j,1) = data[(i*h+j)*3+1]*255;
-                (*testOutputTexture)(i,j,2) = data[(i*h+j)*3+2]*255;
-            }
-        }
-        testOutputTexture->RebindTexture();
-
-        Descale(data,w,h);
-
-        // unsigned int index = idx;
-        // Vector<3,float> magnet(data[index*3], data[index*3+1], data[index*3+2]);
-        // logger.info << "reading index: " << index << " with value: " << magnet << logger.end;
-
-        free(data);
     }
+    signalTexture->RebindTexture();
+}
+
+void MRIModule::Handle(ProcessEventArg arg) {
+    if (!running) return;
+    
+    unsigned int w = img->GetWidth();
+    unsigned int h = img->GetHeight();
+
+    if (sequence) {
+        FIDSequence();
+    }
+    else {
+        float3 b = make_float3(0.0,0.0,b0);
+        if (fid) {
+            logger.info << "FID" << logger.end;
+            float3 _b = b + make_float3(Math::PI*0.5,0.0,0.0);
+            float3 signal = MRI_step(0.0, theTime, (float3*)lab_spins, (float3*)ref_spins,
+                                     props, w, h, _b, 0.0, 0.0);
+            fid = false;
+            cudaThreadSynchronize();
+        }
+        float dt = theDT;
+        theTime += dt;
+        float3 signal = MRI_step(dt, theTime, (float3*)lab_spins, (float3*)ref_spins,
+                                 props, img->GetWidth(), img->GetHeight(), b, gx, gy);
+        
+    }
+
+    // copy result to textures 'n stuff
+    float* data = (float*)malloc(sizeof(float3) * w * h);
+    cudaMemcpy(data, lab_spins, w * h * sizeof(float3), cudaMemcpyDeviceToHost);
+    
+    for (unsigned int i=0;i<w;i++) {
+        for (unsigned int j=0;j<h;j++) {                
+            (*testOutputTexture)(i,j,0) = data[(i*h+j)*3+0]*255;
+            (*testOutputTexture)(i,j,1) = data[(i*h+j)*3+1]*255;
+            (*testOutputTexture)(i,j,2) = data[(i*h+j)*3+2]*255;
+        }
+    }
+    testOutputTexture->RebindTexture();
+    Descale(data,w,h);
+    free(data);
 }
 
 void MRIModule::Descale(float *data, int w, int h) {
@@ -200,7 +249,7 @@ void MRIModule::Handle(InitializeEventArg arg) {
              float pix = (0.3*pixel[0] + 0.59*pixel[1] + 0.11*pixel[2]);
              pix /= 255;
         
-             data[(i*h+j)] = make_float3(0.0, scale*pix, 0.0);
+             data[(i*h+j)] = make_float3(0.0, 0.0, scale*pix);
 
              // data[(i*h+j)*3+1] = scale*pix;
              // data[(i*h+j)*3+2] = 0.0;
@@ -261,7 +310,6 @@ void MRIModule::Handle(KeyboardEventArg arg) {
         cudaMalloc((void**)&devData, sizeof(cuFloatComplex) * w * h);
         
         cudaMemcpy(devData, data, w * h * sizeof(cuFloatComplex), cudaMemcpyHostToDevice);
-
         cudaThreadSynchronize();
 
         bool b = I2K_ALL(devData, dims);
@@ -383,10 +431,12 @@ ValueList MRIModule::Inspection() {
     unsigned int h = img->GetHeight();
 
     MRI_INSPECTION(bool, Running, "running"); // simulation toggle
+    MRI_INSPECTION(bool, Sequence, "Run FID Sequence"); // start recording
     MRI_INSPECTION(float, B0, "B0 (Tesla)");  // B0 field strength
     MRI_INSPECTION(float, FOV, "Field of view");  // Field of view
-    MRI_INSPECTION(float, Gx, "Gradient X");  // Gradient x component field strength
-    MRI_INSPECTION(float, Gy, "Gradient y");  // Gradient y component field strength
+    MRI_INSPECTION(float, PhaseTime, "Phase time (s)");  // Field of view
+    MRI_INSPECTION(float, Gx, "Gradient X (Tesla)");  // Gradient x component field strength
+    MRI_INSPECTION(float, Gy, "Gradient y (Tesla)");  // Gradient y component field strength
     MRI_INSPECTION(bool, FID, "FID signal");  // B1 toggle
     {
         MRI_INSPECTION(unsigned int, Index, "test index");
