@@ -155,7 +155,7 @@ void MRIModule::FIDSequence() {
                 sigIdx[0] = 0;
                 sigIdx[1]++;                    
                 
-                float relax = 1e-5;
+                relax = 1e-6;
             }
         }
     }
