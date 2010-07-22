@@ -11,7 +11,6 @@ phase- and frequency gradients, respectively.
 
 The core of the Bloch equation simulation is implemented in an
 iterative cuda kernel. The main code lines are shown below
-
 \begin{strip}
 \begin{lstlisting}
     // fid rotation
@@ -25,18 +24,17 @@ iterative cuda kernel. The main code lines are shown below
     ref_spins[idx] = m;
     // reference to laboratory
     lab_spins[idx] = make_float3(m.x * cos(omega * thetime) - m.y * sin(omega*thetime), 
-                                 m.x * sin(omega * thetime) + m.y * cos(omega*thetime),  
-                                 m.z);
+                     m.x * sin(omega * thetime) + m.y * cos(omega*thetime),  
+                     m.z);
 \end{lstlisting}
 \end{strip}
-
 Our kernel keeps track of the spin packets in two different coordinate
 systems, namely the rotating frame of reference and the laboratory
 frame. As previously mentioned, the rotating frame of reference,
 rotates at a frequency of $\omega_0=\gamma B_0$. From the perspective
 of this coordinate system we see no rotation about the z-axis, when
 $B_0$ is the only affecting field. This makes it easier to simulate
-the effects of the RF field and the gradient. As can be seen our
+the effects of the RF field and the gradient fields. As can be seen our
 kernel is divided into four different steps. 
 
 We first simulate the effect of the RF field by simply rotating each
@@ -57,7 +55,42 @@ makes each spin rotate either faster or slower than $\omega_0$ and is
 seen in the rotating frame of reference as either a positive or
 negative rotation. 
 
-In the last step compute the posi
+In the last step we compute the orientation of the spin vectors in the
+laboratory frame of reference. This is the actual global space
+orientation of the spins containing the $\omega_0$ rotation together
+with the angular offsets resulting from the gradient fields. We use
+these vectors later on in our data acquisition phase.
+
+\subsection{Simulating an FID sequence}
+
+The cuda kernel as described in the previous section drives the entire
+simulation in fixed size timestep manner. But in order to achieve a
+meaningful sequence of spins we need to carefully coordinate the
+parameters sent to the kernel in each step. An FID sequence assumes
+that the spins are in their equilibrium state and applies the following steps
+\begin{itemize}
+\item Apply 90 degree RF signal.
+\item Apply phase gradient for the duration of $\tau$ seconds.
+\item Apply frequency gradient and start sampling of spin data.
+\item Wait until the spins reach equilibrium and repeat sequence with
+  a slightly different phase gradient field strength.
+\end{itemize}
+We simulate the RF signal step by simply calling the kernel with a
+timestep of $0$ seconds and setting the rotation angle to
+$\frac{\pi}{2}$. This flips the vectors without the trouble of
+simulating how the RF field affects the spins over time. This is fine
+since we are only interested in the resulting effect which is the 90
+degree rotation. Next we do a serious of kernel iterations with a
+specific phase gradient field strength applied. This value varies
+linearly for each FID sequence simulation. This has the effect of
+changing the frequency of each spin based on their spatial
+y-coordinate. We now do a series of kernel iterations with the phase
+gradient turned of and the frequency gradient set at a constant field
+strength. Since the phase gradient is turned off the spins in the
+y-direction now rotates at the same frequency again but with a
+different phase. The frequency gradient makes the spins along the
+x-direction vary in frequency and we can now start sampling the signal
+between each kernel iteration.
 
 % Bloch equations with the gradient and B0, which is what we're
 % solving
