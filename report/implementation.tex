@@ -88,7 +88,7 @@ timestep of $0$ seconds and setting the rotation angle to
 $\frac{\pi}{2}$. This flips the vectors without the trouble of
 simulating how the RF field affects the spins over time. This is fine
 since we are only interested in the resulting effect which is the 90
-degree rotation. Next we do a serious of kernel iterations with a
+degree rotation. Next we do a series of kernel iterations with a
 specific phase gradient field strength applied. This value varies
 linearly for each FID sequence simulation. This has the effect of
 changing the frequency of each spin based on their spatial
@@ -134,10 +134,9 @@ between each kernel iteration.
 \subsection{Sampling}
 
 When sampling the signal, we assume that we have a perfect receiving
-coil. One where the output signal is proportional the same as $M_x$
-and $M_y$.
+coil. One where the output signal is proportional to $M_x$ and $M_y$.
 
-When the kernel is done, we have a array containing $M$ for each spin
+When the kernel is done, we have a array containing $\textbf{M}$ for each spin
 packet. To generate the signal, we simply summarize all the packet
 into one vector ($s$). $s_x$ and $s_y$ represents the signal for a
 single sample.
