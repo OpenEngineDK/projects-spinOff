@@ -158,12 +158,14 @@ struct Wall {
                 if (t) {
                     Vector<2,unsigned int> scale = itm.scale;
                     loader.Load(t,TextureLoader::RELOAD_QUEUED);
-                    TransformationNode* node = CreateTextureBillboard(t,0.05);
-                    node->SetScale(Vector<3,float>( 1.0 * scale[0],
+                    TransformationNode* node = new TransformationNode();
+                    TransformationNode* bnode = CreateTextureBillboard(t,0.05);
+                    bnode->SetScale(Vector<3,float>( 1.0 * scale[0],
                                                    -1.0 * scale[1],
                                                     1.0));
-                    node->Move(x*35-52,y*25-25,0);
-
+                    node->Move(x*35-25,y*35-25,0);
+                    node->AddNode(bnode);
+                    
                     CairoResourcePtr textRes = CairoResource::Create(128,32);
                     textRes->Load();
 
@@ -174,8 +176,8 @@ struct Wall {
 
                     loader.Load(textRes);
                     TransformationNode* textNode = CreateTextureBillboard(textRes,0.15);
-                    textNode->SetScale(Vector<3,float>(1.0,-1.0,1.0));                    
-                    textNode->Move(0,23.0,0);
+
+                    textNode->Move(0,-28,-0.01);
 
 
                     node->AddNode(textNode);
@@ -234,7 +236,7 @@ int main(int argc, char** argv) {
 
 
     // Graphics
-    ITextureResourcePtr girl = ResourceManager<ITextureResource>::Create("frontpage2.jpg");
+    ITextureResourcePtr girl = ResourceManager<ITextureResource>::Create("frontpage.jpg");
     girl->Load();
 
     // Mri Module
@@ -254,7 +256,7 @@ int main(int argc, char** argv) {
     // Wall
     Wall wall(setup->GetTextureLoader());
 
-    wall(0,0) = WallItem(girl, "Girl");
+    wall(0,0) = WallItem(girl, "input");
     wall(1,0) = WallItem(mri->GetOutputTexture(), "output");
     wall(2,0) = WallItem(mri->GetInverseTexture(), "inverse");
 
