@@ -76,6 +76,21 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{listings}
+\usepackage{cuted}
+
+% use a TT font with bold 
+\renewcommand{\ttdefault}{pcr}
+
+\lstset{basicstyle=\ttfamily \footnotesize}
+\lstset{keywordstyle=\textbf}
+\lstset{commentstyle=\normalfont \textit}
+\lstset{stringstyle=\bfseries}
+\lstset{showstringspaces=false}
+
+\lstset{frameround=tttt}
+\lstset{frame=tLBr}
+
+
 
 \newcommand{\reffig}[1]{Figure \ref{#1}}
 \newcommand{\refsec}[1]{section \ref{#1}}
