@@ -185,8 +185,8 @@ __global__ void MRI_step_kernel(float dt, float3* lab_spins, float3* ref_spins, 
     m = rotZ(GYROMAGNETIC_RATIO*gx*posX*dt)*m;
     m = rotZ(GYROMAGNETIC_RATIO*gy*posY*dt)*m;
 
+    // reference position
     ref_spins[idx] = m;
-
     // reference to laboratory
     lab_spins[idx] = make_float3(m.x * cos(omega * thetime) - m.y * sin(omega*thetime), m.x * sin(omega * thetime) + m.y * cos(omega*thetime),  m.z);
 

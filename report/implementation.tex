@@ -193,12 +193,6 @@ Our sample space is then copied into K-space, where we use the inverse
 discrete fourier transformation (IDFT) to transform it into
 image-space.
 
-\subsection{Problems}
-
-One of our problems is in the sampling to K-space. In our
-implementation, the sampling is done from the lower left corner in
-K-space, this will make us loose some resolution. Instead the data
-should be centered in the middle of the K-space.
 
 % A last kernel will transform the image back to image space. Use
 % Sangilds fft wrapper.

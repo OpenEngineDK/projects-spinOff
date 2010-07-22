@@ -1,5 +1,31 @@
 \section{Results and Conclusion}
 
+The main objectives of this project was to improve our understanding
+of MRI physics. In this regard we are succesful. Our secondary
+objective however did not completely succeed since we were unable to
+produce a meaningful output based on the input image. We can identify
+several causes of this problem. First of all our construction of the
+initial spin parameters based on an image might not be valid at
+all. We should eliminate this error by simply using valid input data.
+Furthermore we see another problem in the sampling to K-space. In our
+implementation, the sampling is done from the lower left corner in
+K-space, this will make us loose some resolution. Instead the data
+should be centered in the middle of the K-space. The timing and field
+strength of the gradients are at the moment most likely not correct. 
+
+On the positive side our we get some good visualizations of the spins
+and are able to observe changes in spin relaxations based on $T1$ and
+$T2$ values. These behavours seem to be correct in the sense that
+greater values yield a longer relaxation time. We also observe changes
+in the acquired signal based on both the RF and the gradient fields.
+
+Alltogether we have achieved a good foundation for further development
+of a working simulator. We believe that our problems with the gradient
+fields can be solved by finding correct parameters and by focusing on
+correct timing of the FID sequences.
+
+
+
 %%% Local Variables: 
 %%% mode: latex
 %%% TeX-master: "report.tex"

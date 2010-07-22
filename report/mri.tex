@@ -5,29 +5,29 @@
 
 Magnetic Resonance Imaging is a technique used for visualizing the
 amount of hydrogen atoms present in a patient. Each voxel in the image
-corrosponds to a spin packet and the intensity in the voxel is an
+corresponds to a spin packet and the intensity in the voxel is an
 approximation of how many hydrogen atoms was present within that
 particular spin packet. This is useful in medical imaging as different
-materials such as blood, bones and brain matter will produce different
-intensities and can thus be distinguised in the images.
+tissue will produce different intensities and can thus be distinguised
+in the images.
 
 % The B0 magnetic field
 
-To control the direction of the hydrogen's nucleus spin several
+To control the direction of the hydrogen nucleus spin several
 magnetic fields are employed. The first is a static field called
 $\mathbf{B}_0$ aligned along the length of the patiens body from toe
 to head. In clinical imaging this is taken as the z-axis. The effect
 of applying $\mathbf{B}_0$ is to align all spin packets net
 magnetization vectors along the z-axis. The net magnetization vector
 is then said to be at equilibrium. This does not mean that all the
-individuel spins of the hydrogens nuclei are pointing upwards, but the
+individual spins of the hydrogens nuclei are pointing upwards, but the
 sum of all spindirections will produce a vector along the z-axis. The
 individuel spins are also precessing about the z-axis, but while the
 net magnetization is at equilibrium this precessing is not measurable.
 
 % RF pulse
 
-While at equilibrium the net magnetization vector doesn't produce any
+While at equilibrium the net magnetization vector does not produce any
 signal. To induce a signal in the surrounding coils the net
 magnetization will have to be flipped into the transverse plane,
 ie. the xy-plane. To flip the magnetization another magnetic field,
@@ -59,10 +59,10 @@ spin of the net magnetizations are brought out of phase with the other
 netmagnetizations in the slice, thus giving them a uniquely detectable
 rotation. And the third gradient field, $\mathbf{B}_{G_f}$, is a
 linear magnetic field gradient. The effect of $\mathbf{B}_{G_f}$ is to
-encode the frequency at which the net magnetization precesses in the
-transverse plane.
+relate the frequency at which the net magnetization precesses in the
+transverse plane to its spatial location.
 
-These last 2 gradients will make it possible for a fourier transform
+These last two gradients will make it possible for a fourier transform
 to \emph{recognize} the individuel spin packets and recreate the original
 image.
 
