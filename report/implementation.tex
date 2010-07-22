@@ -5,34 +5,80 @@
 % Assume slice selection and possibly phase gradient
 
 In our simulation we assume that the correct slice has been selected
-and excited, so we only work with a 2 dimensional image and the net
-magnetization vectors have been rotated into the transversal
-plane. This allows us to focus on the image acquisition phase.
+and excited, so we only work with a single two-dimensional image. This
+allows us to focus on the image acquisition phase while applying the
+phase- and frequency gradients, respectively.
+
+The core of the Bloch equation simulation is implemented in an
+iterative cuda kernel. The main code lines are shown below
+\begin{lstlisting}
+    // fid rotation
+    m = rotX(b.x)*m;
+    // relaxation
+    m += make_float3(-m.x*dtt2, -m.y*dtt2, (props[idx].eq-m.z)*dtt1);
+    // gradient rotation
+    m = rotZ(GYROMAGNETIC_RATIO*gx*posX*dt)*m;
+    m = rotZ(GYROMAGNETIC_RATIO*gy*posY*dt)*m;
+    // reference position
+    ref_spins[idx] = m;
+    // reference to laboratory
+    lab_spins[idx] = make_float3(m.x * cos(omega * thetime) - m.y * sin(omega*thetime), 
+                                 m.x * sin(omega * thetime) + m.y * cos(omega*thetime),  
+                                 m.z);
+\end{lstlisting}  
+Our kernel keeps track of the spin packets in two different coordinate
+systems, namely the rotating frame of reference and the laboratory
+frame. As previously mentioned, the rotating frame of reference,
+rotates at a frequency of $\omega_0=\gamma B_0$. From the perspective
+of this coordinate system we see no rotation about the z-axis, when
+$B_0$ is the only affecting field. This makes it easier to simulate
+the effects of the RF field and the gradient. As can be seen our
+kernel is divided into four different steps. 
+
+We first simulate the effect of the RF field by simply rotating each
+spin vector about the x-axis, at a specified angle. For our purposes
+this is always a 90 degree angle to rotate the spin vector onto the
+transversal plane. This step makes sense since we operate in the
+rotating frame of reference.
+
+The second step uses the individual $T1$ and $T2$ relaxation times to
+bring the spin vector back into its original equilibrium state. This
+means that transversal components are gradually zeroed out while the
+z-component gradually regains its initial magnitude.
+
+In the third step we apply the effect of the gradient fields. Both
+fields simply induce a rotation around the z-axis by an angle which is
+dependent on the field strength and the position of the spins. This
+makes each spin rotate either faster or slower than $\omega_0$ and is
+seen in the rotating frame of reference as either a positive or
+negative rotation. 
+
+In the last step compute the posi
 
 % Bloch equations with the gradient and B0, which is what we're
 % solving
 
-With only the static magnetic field $\mathbf{B}_0$ and
-$\mathbf{B}_{G_f} = \langle 0, 0, p_x * B_{G_f} \rangle$ active, the
-block equations simply to
+% With only the static magnetic field $\mathbf{B}_0$ and
+% $\mathbf{B}_{G_f} = \langle 0, 0, p_x * B_{G_f} \rangle$ active, the
+% block equations simply to
 
-\begin{displaymath}
-  \begin{array}{l}
-    \frac{dM_x}{dt} = \gamma (B_0 + p_x * B_{G_f}) M_y - \frac{M_x}{T_2} \\
-    \frac{dM_y}{dt} = - \gamma (B_0 + p_x * B_{G_f}) M_x - \frac{M_y}{T_2} \\
-    \frac{dM_z}{dt} = - \frac{M_z - M_{eq}}{T_1}
-  \end{array}
-\end{displaymath}
+% \begin{displaymath}
+%   \begin{array}{l}
+%     \frac{dM_x}{dt} = \gamma (B_0 + p_x * B_{G_f}) M_y - \frac{M_x}{T_2} \\
+%     \frac{dM_y}{dt} = - \gamma (B_0 + p_x * B_{G_f}) M_x - \frac{M_y}{T_2} \\
+%     \frac{dM_z}{dt} = - \frac{M_z - M_{eq}}{T_1}
+%   \end{array}
+% \end{displaymath}
 
-which have the analytical solution 
+% which have the analytical solution 
 
-\begin{displaymath}
-  \begin{array}{l}
-    M_x(t) = e^{-t/T_2}(M_x(0) \cos(w_0 t + w_f t) - M_y(0) \sin (w_0 t + w_f t)) \\
-    M_y(t) = e^{-t/T_2}(M_x(0) \sin(w_0 t + w_f t) + M_y(0) \cos (w_0 t + w_f t)) \\
-    M_z(t) = M_z(0) e^{t/T_1} + M_{eq}(1 - e^{-1/T_1})
-  \end{array}
-\end{displaymath}
+% \begin{displaymath}
+%   \begin{array}{l}
+%     M_x(t) = e^{-t/T_2}(M_x(0) \cos(w_0 t + w_f t) - M_y(0) \sin (w_0 t + w_f t)) \\
+%     M_y(t) = e^{-t/T_2}(M_x(0) \sin(w_0 t + w_f t) + M_y(0) \cos (w_0 t + w_f t)) \\
+%     M_z(t) = M_z(0) e^{t/T_1} + M_{eq}(1 - e^{-1/T_1})
+%   \end{array}
+% \end{displaymath}
 
 % One kernel for Calculating several/all timesteps and store them in
 % an array. (one thread pr voxel in the original image)
