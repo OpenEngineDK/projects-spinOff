@@ -142,10 +142,10 @@ packet. To generate the signal, we simply summarize all the packet
 into one vector ($s$). $s_x$ and $s_y$ represents the signal for a
 single sample.
 
-Below is a CUDA kernel that summarizes the data into a array with one
+In fig. \ref{fig:reduce} is a CUDA kernel that summarizes the data into a array with one
 entry for each block. This array is then summarized on the CPU.
 
-\begin{strip}
+\begin{figure*}[h]
 \begin{lstlisting}
 template <class T>
 __global__ void
@@ -178,8 +178,10 @@ reduce3(T *g_idata, T *g_odata, unsigned int n, T zero)
     // write result for this block to global mem 
     if (tid == 0) g_odata[blockIdx.x] = sdata[0];
 }
-\end{lstlisting}  
-\end{strip}
+\end{lstlisting}
+  \caption{Summarization}
+  \label{fig:reduce}
+\end{figure*}
 
 In our implementation, the sampling is synchronized to our time step,
 so each time we generate a new $M$, we store a sample of the signal.
@@ -188,8 +190,9 @@ After recording one line in our sampling space, we relax the spins and
 add a phase encoding gradient. Then the recording process starts over
 on the next line.
 
-Our sample space is then copied into K-space, where we use the
-inverse discrete fourier transformation to transform it into image-space.
+Our sample space is then copied into K-space, where we use the inverse
+discrete fourier transformation (IDFT) to transform it into
+image-space.
 
 \subsection{Problems}
 

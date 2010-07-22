@@ -475,7 +475,7 @@
 \author{Asger~Dam~Hoedt,
   Thomas~Salomon,
   og~Peter~Kristensen\protect\\
-  \includegraphics[width=7cm]{frontpage2}% <-this % stops a space
+  \includegraphics[width=7cm]{frontpage}% <-this % stops a space
 %  \IEEEcompsocitemizethanks{\IEEEcompsocthanksitem M. Shell is with the Department
 %    of Electrical and Computer Engineering, Georgia Institute of Technology, Atlanta,
 %    GA, 30332.\protect\\
@@ -718,25 +718,27 @@ MRI, Simulation, GPU.
 % http://www.ctan.org/tex-archive/biblio/bibtex/contrib/doc/
 % The IEEEtran BibTeX style support page is at:
 % http://www.michaelshell.org/tex/ieeetran/bibtex/
-%\bibliographystyle{IEEEtran}
+\bibliographystyle{IEEEtran}
 % argument is your BibTeX string definitions and bibliography database(s)
-%\bibliography{IEEEabrv,../bib/paper}
+\bibliography{references}
 %
 % <OR> manually copy in the resultant .bbl file
 % set second argument of \begin to the number of references
 % (used to reserve space for the reference number labels box)
-\begin{thebibliography}{4}
+% \begin{thebibliography}{4}
 
-%\bibitem{IEEEhowto:kopka}
-%H.~Kopka and P.~W. Daly, \emph{A Guide to \LaTeX}, 3rd~ed.\hskip 1em plus
-%  0.5em minus 0.4em\relax Harlow, England: Addison-Wesley, 1999.
+% %\bibitem{IEEEhowto:kopka}
+% %H.~Kopka and P.~W. Daly, \emph{A Guide to \LaTeX}, 3rd~ed.\hskip 1em plus
+% %  0.5em minus 0.4em\relax Harlow, England: Addison-Wesley, 1999.
 
-\bibitem{feeman} 
-Timothy G. Feeman, \emph{The Mathematics of Medical Imaging: A
-  Beginner's Guide} \hskip 1em plus 0.5em minus 0.4em\relax Springer,
-2009, 115-128.
+% \bibitem{feeman} 
+% Timothy G. Feeman, \emph{The Mathematics of Medical Imaging: A
+%   Beginner's Guide} \hskip 1em plus 0.5em minus 0.4em\relax Springer,
+% 2009, 115-128.
+% \bibitem{abio}
+%   Ab
 
-\end{thebibliography}
+% \end{thebibliography}
 
 % biography section
 % 
@@ -783,13 +785,7 @@ Timothy G. Feeman, \emph{The Mathematics of Medical Imaging: A
 \appendices
 \section{Running the program.}
 
-Instuktioner til at installere programmet kan findes på
-\url{http://www.openengine.dk/trac/wiki/Projects/DeathRay}.
-
-Programmet er allerede installeret på Christian Christoffersen's
-computer, så for at slippe for alt bøvlet med at installere
-dependencies, kan det anbefales at køre det der.
-
+\input{running}
 
 \onecolumn
 
