@@ -11,7 +11,10 @@ phase- and frequency gradients, respectively.
 
 The core of the Bloch equation simulation is implemented in an
 iterative cuda kernel. The main code lines are shown below
-\begin{strip}
+
+% \begin{strip}
+\begin{figure*}
+  \centering
 \begin{lstlisting}
     // fid rotation
     m = rotX(b.x)*m;
@@ -27,7 +30,11 @@ iterative cuda kernel. The main code lines are shown below
                      m.x * sin(omega * thetime) + m.y * cos(omega*thetime),  
                      m.z);
 \end{lstlisting}
-\end{strip}
+  \caption{A code snippet of the simulation kernel.}
+  \label{fig:kernel}
+\end{figure*}
+% \end{strip}
+
 Our kernel keeps track of the spin packets in two different coordinate
 systems, namely the rotating frame of reference and the laboratory
 frame. As previously mentioned, the rotating frame of reference,
