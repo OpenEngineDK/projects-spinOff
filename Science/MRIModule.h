@@ -56,6 +56,7 @@ private:
     
 
     bool running, fid, sequence, test;
+    float relax;
     float b0, gx, gy, fov, phaseTime;
     float *lab_spins, *ref_spins;
     SpinProperty* props;
@@ -69,6 +70,7 @@ private:
 
     void Descale(float *data, int w, int h);
     void FIDSequence();
+
 public:
     MRIModule(ITextureResourcePtr img);
     void Handle(ProcessEventArg arg);

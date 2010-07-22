@@ -42,6 +42,7 @@ MRIModule::MRIModule(ITextureResourcePtr img)
     , running(false)
     , fid(false)
     , sequence(false)
+    , relax(0.0)
     , b0(.5)
     , gx(0.0)
     , gy(0.0)
@@ -87,6 +88,17 @@ void MRIModule::FIDSequence() {
     float dt = theDT;
 
     for (unsigned int i = 0; i < 4; i++) {
+
+        if (relax > 0.0) {
+            relax -= dt;
+            theTime += dt;
+            MRI_step(dt, theTime, (float3*)lab_spins, (float3*)ref_spins,
+                     props, img->GetWidth(), img->GetHeight(), b, 0.0, 0.0);
+            CHECK_FOR_CUDA_ERROR();
+            cudaThreadSynchronize();
+            return;
+        }
+
         // initialize each line. flip 90 degree and apply phase gradient.
         if (sigIdx[0]  == 0) {
             theTime = 0.0;
@@ -135,15 +147,7 @@ void MRIModule::FIDSequence() {
                 sigIdx[0] = 0;
                 sigIdx[1]++;                    
                 
-                float relaxTime = 1e-5;
-                while (relaxTime > 0) {
-                    relaxTime -= dt;
-                    theTime += dt;
-                    MRI_step(dt, theTime, (float3*)lab_spins, (float3*)ref_spins,
-                             props, img->GetWidth(), img->GetHeight(), b, gx, gy);
-                    CHECK_FOR_CUDA_ERROR();
-                    cudaThreadSynchronize();
-                }
+                float relax = 1e-5;
             }
         }
     }
