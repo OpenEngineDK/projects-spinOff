@@ -5,3 +5,25 @@
 %%% TeX-master: "report.tex"
 %%% TeX-PDF-mode: t
 %%% End: 
+
+One of the biggest problems in our current implementation is the
+timing issue. Right now almost every time related variable is a user
+defined value. We need to investigate what would be good values for the
+following variables based on their relation with the rest of the simulation
+framework:
+\begin{itemize}
+\item The size of the time steps.
+\item The duration of the phase gradient field application.
+\item The sampling rate.
+\end{itemize}
+Furthermore we need to fully understand how the sampled data should be
+handled by the fourier transform in order to reconstruct the image slice.
+
+When the above problems are solved the next step will be to extend our
+simulatior with more advanced features, such as $B_0$ field
+inhomogenities, changes in magnetic fields due to chemical reactions
+in tissue, and handling of three-dimensional data sets.
+
+Our current work forms a good basis for exploring these aspects of MRI
+and due to the parallel implementation of the simulation kernel we can
+also hope to achieve a very efficient simulator.
