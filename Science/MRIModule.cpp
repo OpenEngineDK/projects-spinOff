@@ -141,7 +141,7 @@ void MRIModule::FIDSequence() {
         
         //signal aquisition
         float signalScale = 0.1;
-        if (sigIdx[1] < SIGNAL_SIZE) {
+        if (sigIdx[1] < 100) {
             // signal
             (*signalTexture)(sigIdx[0],sigIdx[1],0) = signalScale*signal.x*255;
             (*signalTexture)(sigIdx[0],sigIdx[1],1) = signalScale*signal.y*255;
