@@ -48,5 +48,6 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME}
   Extensions_Inspection
   Extensions_InspectionBar
   Extensions_Plotting
+  Extensions_CUDA
   ${CUDA_KERNELS}
 )
